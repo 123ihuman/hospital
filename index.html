@@ -26,7 +26,7 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
   .navbar h1 { font-size: 20px; letter-spacing: 0.5px; }
-  .nav-links { display: flex; gap: 15px; font-size: 14px; font-weight: 600; }
+  .nav-links { display: flex; gap: 15px; font-size: 14px; font-weight: 600; align-items: center; }
   .nav-links span { cursor: pointer; opacity: 0.7; transition: 0.3s; }
   .nav-links span:hover, .nav-links span.active { opacity: 1; border-bottom: 2px solid var(--accent); }
 
@@ -38,7 +38,7 @@
     background: var(--card); border-radius: 12px; padding: 25px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px;
     border-left: 5px solid var(--secondary);
-    display: none; /* Hidden by default, toggled via JS */
+    display: none; 
   }
   .panel.active { display: block; animation: fadeIn 0.4s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -68,10 +68,6 @@
   .btn-print { background: var(--success); margin-top: 15px; }
 
   /* Informational Text */
-  .disclaimer-box {
-    background: #fff3cd; border: 1px solid #ffeeba; color: #856404;
-    padding: 15px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 20px;
-  }
   .info-card { background: #e7f5ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; border-left: 4px solid var(--secondary); }
   .warning-card { background: #f8d7da; color: #721c24; border-left: 4px solid var(--danger); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; }
 
@@ -80,7 +76,6 @@
   .report-card { border: 2px solid var(--primary); border-radius: 8px; overflow: hidden; }
   .report-header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; }
   .report-body { padding: 20px; background: #fff; }
-  .med-pill { display: inline-block; background: var(--secondary); color: white; padding: 3px 10px; border-radius: 20px; font-size: 12px; margin-right: 5px; margin-bottom: 5px; }
   .price-tag { font-weight: bold; color: var(--success); }
   .dosage-line { background: #f1f1f1; padding: 8px; border-radius: 4px; margin: 5px 0; font-size: 13px; font-family: monospace; }
   
@@ -127,12 +122,14 @@
     <span onclick="switchTab('input')" class="active">Symptom Checker</span>
     <span onclick="switchTab('info')">Medicine Info</span>
     <span onclick="switchTab('report')">Report Card</span>
+    <!-- NEW GOOGLE LENS BUTTON -->
+    <span onclick="window.open('https://lens.google.com/', '_blank')" style="color: #ffeb3b; font-weight: bold; border-left: 1px solid #fff; padding-left: 10px;">📷 Google Lens</span>
   </div>
 </div>
 
 <div class="container">
 
-  <!-- PANEL 1: SYMPTOM INPUT (Multi-symptom) -->
+  <!-- PANEL 1: SYMPTOM INPUT -->
   <div id="panel-input" class="panel active">
     <h2>Patient & Symptom Details</h2>
 
@@ -163,19 +160,18 @@
     </div>
 
     <label>Type Your Issues (Use commas, spaces, or full sentences)</label>
-    <textarea id="pSymptoms" placeholder="Example: I am suffering from fever from 2 days with cold tell me what medicine i take"></textarea>
+    <textarea id="pSymptoms" placeholder="Example: Mujhe 2 din se bukhar nahi hai sirf jhukham hai"></textarea>
     <p style="font-size:12px; color:#666; margin-top:-10px; margin-bottom:15px;">
-      <em>Tip: You can type full sentences now. The AI will extract the symptoms automatically.</em>
+      <em>Tip: You can type full sentences in Hindi, English, or Hinglish. The AI will extract the symptoms automatically.</em>
     </p>
 
     <button onclick="analyzeSymptoms()">🔍 Analyze & Generate Report</button>
   </div>
 
-  <!-- PANEL 2: INFO & PRICES (Dynamic Search Engine) -->
+  <!-- PANEL 2: INFO & PRICES -->
   <div id="panel-info" class="panel">
     <h2>📊 Medicine Database</h2>
     
-    <!-- Search & Filter Controls -->
     <div class="row" style="margin-bottom: 20px;">
       <div>
         <label>Search Medicine</label>
@@ -184,7 +180,7 @@
       <div>
         <label>Filter by Form</label>
         <select id="filterForm" onchange="renderMedicineList()" style="margin-bottom: 0;">
-          <option value="all">All Forms (Tablets, Syrups, etc.)</option>
+          <option value="all">All Forms</option>
           <option value="Tablet">Tablet</option>
           <option value="Syrup">Syrup</option>
           <option value="Injection">Injection</option>
@@ -197,13 +193,12 @@
       </div>
     </div>
 
-    <!-- Results Container -->
     <div id="medListContainer" style="max-height: 500px; overflow-y: auto; padding-right: 5px;">
-      <!-- JavaScript will inject the medicines here -->
+      <!-- Injected via JS -->
     </div>
   </div>
 
-  <!-- PANEL 3: DYNAMIC REPORT CARD (Hidden until generated) -->
+  <!-- PANEL 3: DYNAMIC REPORT CARD -->
   <div id="panel-report" class="panel">
     <div id="reportContent" class="report-section" style="display:block;">
       <!-- Injected via JS -->
@@ -218,7 +213,7 @@
         <button onclick="copyReport()" style="background:#0b3d91; margin-top: 0;">📋 Copy Text</button>
       </div>
       <div style="flex: 1; min-width: 120px;">
-        <button onclick="shareWhatsApp()" style="background:#25D366; margin-top: 0;">📱 Share WhatsApp</button>
+        <button onclick="shareWhatsApp()" style="background:#25D366; margin-top: 0;">📱 WhatsApp</button>
       </div>
       <div style="flex: 1; min-width: 120px;">
         <button style="background:#6c757d; margin-top: 0;" onclick="switchTab('input')">↺ New Check</button>
@@ -227,14 +222,12 @@
   </div>
 
   <footer>
-    MediGuide Pro v2.0 • Data verified for Indian market context .
+    MediGuide Pro v2.0 • Data verified for Indian market context •
   </footer>
 </div>
 
-<!-- Load the external database first -->
 <script src="medicines.js"></script>
 
-<!-- Main Logic -->
 <script>
 // --- TAB SWITCHING LOGIC ---
 function switchTab(tabId) {
@@ -253,50 +246,79 @@ function switchTab(tabId) {
   window.scrollTo(0,0);
 }
 
-// --- CORE ANALYSIS & NEW RENDER LOGIC ---
+// --- CORE ANALYSIS ---
 function analyzeSymptoms() {
   const name = document.getElementById('pName').value.trim() || "Guest Patient";
   const age = parseInt(document.getElementById('pAge').value);
   const gender = document.getElementById('pGender').value;
   const duration = document.getElementById('pDuration').value || "Not specified";
   
-  // Capture original text for the summary
   let originalInput = document.getElementById('pSymptoms').value;
-  
-  // Clean text for matching
-  let rawSymptoms = originalInput.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+  let cleanInput = originalInput.toLowerCase().replace(/[^a-z0-9\u0900-\u097F\s]/g, ' ');
 
-  if (!rawSymptoms || rawSymptoms.trim() === "") { alert("Please type at least one symptom."); return; }
+  if (!cleanInput || cleanInput.trim() === "") { alert("Please type at least one symptom."); return; }
   if (isNaN(age) || age < 1) { alert("Please enter a valid age."); return; }
 
-  if (rawSymptoms.includes("chest pain") || rawSymptoms.includes("breathing") || rawSymptoms.includes("stiff neck")) {
-    alert("🚨 EMERGENCY SYMPTOM DETECTED. Please go to the nearest hospital immediately.");
-    return;
-  }
+  // --- 1. NEGATION HANDLER (Ignores "bukhar nahi", "no fever", etc.) ---
+  const symptomKeywords = ["bukhar", "fever", "khansi", "cough", "sardi", "cold", "jhukham", "pain", "dard", "ulti", "vomiting", "kamzori", "weakness", "gas", "acidity", "teeth", "dant", "eye", "aankh", "ear", "kaan"];
+  const negations = ["nahi", "not", "no", "nope", "without", "bina", "kabhi nahi"];
 
-  // --- SYNONYM MAP ---
-  const synonymMap = {
-    "temperature": "fever",
-    "high temp": "fever",
-    "loose motion": "stomach ache",
-    "diarrhea": "stomach ache",
-    "stomach pain": "stomach ache",
-    "pain in stomach": "stomach ache",
-    "abdomen pain": "stomach ache",
-    "throwing up": "vomiting",
-    "puking": "vomiting",
-    "nausea": "vomiting",
-    "sneezing": "cold",
-    "runny nose": "cold",
-    "migraine": "headache",
-    "muscle pain": "body pain",
-    "joint pain": "body pain",
-    "high sugar": "diabetes",
-    "sugar": "diabetes",
-    "sore throat": "cough"
+  negations.forEach(neg => {
+    symptomKeywords.forEach(sym => {
+      let regex1 = new RegExp(`\\b${sym}\\s+${neg}\\b`, 'gi');
+      let regex2 = new RegExp(`\\b${neg}\\s+${sym}\\b`, 'gi');
+      cleanInput = cleanInput.replace(regex1, ' ').replace(regex2, ' ');
+    });
+  });
+
+  let rawSymptoms = cleanInput;
+
+  // --- 2. MULTI-LANGUAGE DICTIONARY ---
+  const langMap = {
+    // Hindi/Hinglish
+    "bukhar": "fever", "बुखार": "fever", "tej bukhar": "fever",
+    "khansi": "cough", "खांसी": "cough", "कफ": "cough",
+    "sardi": "cold", "सर्दी": "cold", "jhukham": "cold", "जुकाम": "cold", "xeek": "cold", "chheenk": "cold",
+    "dard": "pain", "दर्द": "pain", "sareer dard": "body pain", "body dard": "body pain",
+    "pet dard": "stomach ache", "पेट दर्द": "stomach ache",
+    "sir dard": "headache", "सिर दर्द": "headache",
+    "dant dard": "toothache", "दांत दर्द": "toothache", "daant": "toothache", "दांत": "toothache", "dant": "toothache",
+    "kaan dard": "ear pain", "कान दर्द": "ear pain", "kaan": "ear pain",
+    "aankh": "eye pain", "आंख": "eye pain", "aankh laal": "eye redness", "आंख लाल": "eye redness",
+    "ulti": "vomiting", "उल्टी": "vomiting", "matli": "nausea",
+    "kamzori": "weakness", "कमजोरी": "weakness", "thakan": "fatigue",
+    "dast": "diarrhea", "दस्त": "diarrhea", "loose motion": "diarrhea",
+    "periods": "periods issues", "पीरियड्स": "periods issues", "masik dharm": "periods issues",
+    "sujan": "swelling", "सूजन": "swelling", "chot": "injury", "चोट": "injury", "gir gya": "injury",
+    "khoon": "injury", "खून": "injury", "blood": "injury", "jalna": "burn", "जलना": "burn",
+    "bhuk nhi": "no hunger", "khana khane ka man nhi": "no hunger", "भूख नहीं": "no hunger",
+    "bal": "hair loss", "baal": "hair loss", "बाल": "hair loss", "hair": "hair loss",
+    // Kannada
+    "jwara": "fever", "kemmu": "cough", "sheeta": "cold", "novu": "pain", "hotte": "stomach ache", "hallu": "toothache", "kannu": "eye pain", "kivi": "ear pain",
+    // Tamil
+    "kaichal": "fever", "irumal": "cough", "sali": "cold", "vali": "pain", "vayiru": "stomach ache", "pal": "toothache", "kan": "eye pain", "kaadhu": "ear pain"
   };
 
-  // Translate synonyms into database terms
+  for (let key in langMap) {
+    if (rawSymptoms.includes(key)) {
+      rawSymptoms += " " + langMap[key];
+    }
+  }
+
+  // --- 3. EXPANDED SYNONYM MAP ---
+  const synonymMap = {
+    "temperature": "fever", "hot body": "fever", "body ache": "body pain", "muscle pain": "body pain", 
+    "migraine": "headache", "swollen": "swelling", "wound": "injury", "cut": "injury", "sprain": "injury", "fell down": "injury", "bleding": "injury",
+    "teeth": "toothache", "tooth": "toothache", "dental": "toothache", "gum": "toothache", "sensitive teeth": "toothache", "jalan": "toothache",
+    "eye": "eye pain", "eyes": "eye pain", "red eye": "eye redness", "watery eyes": "eye redness", "aankh se pani": "eye redness",
+    "ear": "ear pain", "ears": "ear pain", "ear ache": "ear pain",
+    "stomach pain": "stomach ache", "belly pain": "stomach ache", "tummy": "stomach ache", "cramps": "stomach cramps", "gas": "acidity",
+    "loose motions": "diarrhea", "throwing up": "vomiting", "puking": "vomiting", "nausea": "vomiting",
+    "sneezing": "cold", "runny nose": "cold", "blocked nose": "cold", "sore throat": "throat infection", "throat pain": "throat infection", "coughing": "cough",
+    "weak": "weakness", "tired": "fatigue", "no energy": "weakness", "dizzy": "dizziness",
+    "period": "periods issues", "menstruation": "periods issues", "menses": "periods issues", "period pain": "periods issues", "irregular periods": "periods issues", "jaldi aate": "periods issues"
+  };
+
   for (let key in synonymMap) {
     if (rawSymptoms.includes(key)) {
       rawSymptoms += " " + synonymMap[key]; 
@@ -322,7 +344,49 @@ function analyzeSymptoms() {
     });
   });
 
-  if (detectedMeds.length === 0) {
+  // --- 4. EMERGENCY & FIRST AID ENGINE ---
+  let firstAidHTML = "";
+  
+  // Check if the user described an accident, injury, burn, or severe trauma
+  if (rawSymptoms.includes("injury") || rawSymptoms.includes("burn") || rawSymptoms.includes("accident") || rawSymptoms.includes("fracture")) {
+    
+    let aidSteps = "";
+    
+    if (rawSymptoms.includes("burn")) {
+      aidSteps = `
+        <li>Cool the burn under cool running water for 10-20 minutes.</li>
+        <li>Do NOT apply ice, butter, or toothpaste.</li>
+        <li>Cover loosely with a clean, sterile bandage or cloth.</li>
+      `;
+    } else if (rawSymptoms.includes("injury") && (rawSymptoms.includes("blood") || rawSymptoms.includes("khoon"))) {
+      aidSteps = `
+        <li><strong>Stop Bleeding:</strong> Apply firm, direct pressure on the wound with a clean cloth.</li>
+        <li>Do NOT remove the cloth if it gets soaked; add another layer on top.</li>
+        <li>Elevate the injured area above the heart if possible.</li>
+        <li>Wash minor cuts with clean water and apply an antiseptic (Betadine).</li>
+      `;
+    } else {
+      aidSteps = `
+        <li><strong>R.I.C.E Method:</strong> <strong>R</strong>est the area, <strong>I</strong>ce it (15 mins), <strong>C</strong>ompress with a crepe bandage, <strong>E</strong>levate it.</li>
+        <li>Do NOT try to forcefully move a broken or severely sprained joint.</li>
+        <li>Immobilize the area using a splint or cloth if you must move.</li>
+      `;
+    }
+
+    firstAidHTML = `
+      <div style="background: #ffebee; border: 2px solid #d90429; padding: 20px; margin: 15px 0; border-radius: 8px; color: #b71c1c;">
+        <h3 style="margin-top: 0; color: #d90429;">🚨 EMERGENCY FIRST AID (DO THIS IMMEDIATELY)</h3>
+        <p>Based on your description, this is a physical injury. If you are in a remote area or waiting for a doctor, follow these steps:</p>
+        <ul style="margin-left: 20px; font-weight: bold; line-height: 1.8;">
+          ${aidSteps}
+        </ul>
+        <p style="margin-top: 15px; font-size: 13px;"><em>⚠️ If bleeding does not stop after 10 minutes of firm pressure, or if the bone is visible, it is a life-threatening emergency. Get to a hospital immediately.</em></p>
+      </div>
+    `;
+  }
+
+  // If NO medicines AND NO first aid found, tell the user
+  if (detectedMeds.length === 0 && firstAidHTML === "") {
     alert("Symptom not found in database. Try simpler words like 'fever', 'stomach ache', 'weakness'.");
     return;
   }
@@ -330,7 +394,7 @@ function analyzeSymptoms() {
   let detectedSymptoms = Array.from(matchedSymptoms);
   let reportHTML = "";
 
-  // --- SUPPORTIVE CARE & DIET DATABASE ---
+  // --- 5. SUPPORTIVE CARE & DIET DATABASE ---
   const careAdvice = {
     "fever": { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", temp: "Use a damp cloth on forehead if very hot. Keep room ventilated.", how: "Take medicines with normal room temperature water after food." },
     "vomiting": { eat: "BRAT diet (Banana, Rice, Applesauce, Toast), plain curd, ORS.", avoid: "Spicy, oily, or heavy dairy foods.", herbs: "Ginger tea, mint leaves, lemon water.", temp: "Sip fluids slowly and frequently.", how: "Take anti-vomiting tablet 30 mins before eating with a sip of water." },
@@ -338,16 +402,20 @@ function analyzeSymptoms() {
     "cough": { eat: "Warm water, honey, turmeric milk, soups.", avoid: "Cold water, ice cream, sour foods.", herbs: "Steam inhalation, ginger, Tulsi, Mulethi.", temp: "Avoid cold air and AC.", how: "Take syrup with warm water. Do not drink water immediately after." },
     "cold": { eat: "Warm soups, ginger tea, turmeric milk.", avoid: "Cold foods, yogurt, bananas.", herbs: "Steam, Tulsi leaves, black pepper.", temp: "Keep yourself warm.", how: "Antihistamines cause drowsiness, take them with water at night." },
     "body pain": { eat: "Protein-rich foods, warm water.", avoid: "Heavy physical exertion.", herbs: "Warm compress on joints.", temp: "Keep body warm.", how: "Take painkillers after a full meal with water." },
-    "headache": { eat: "Hydrate well, drink coconut water or lemon water.", avoid: "Loud noises, bright screens, skipping meals.", herbs: "Peppermint oil on temples.", temp: "Rest in a dark, quiet room.", how: "Take medicine with water. Do not take on an empty stomach." }
+    "headache": { eat: "Hydrate well, drink coconut water or lemon water.", avoid: "Loud noises, bright screens, skipping meals.", herbs: "Peppermint oil on temples.", temp: "Rest in a dark, quiet room.", how: "Take medicine with water. Do not take on an empty stomach." },
+    "toothache": { eat: "Soft foods, avoid chewing on the painful side.", avoid: "Very hot, cold, or sweet foods.", herbs: "Saltwater gargle, clove oil on the tooth.", temp: "Apply a cold pack on the outside of the cheek.", how: "Take painkillers after meals." },
+    "eye pain": { eat: "Vitamin A rich foods (carrots).", avoid: "Rubbing eyes, screens.", herbs: "Cold compress, splashing clean water.", temp: "Rest your eyes.", how: "Do not touch the dropper tip to your eye." },
+    "injury": { eat: "Protein-rich foods for healing.", avoid: "Moving the injured part too much.", herbs: "Turmeric milk (anti-inflammatory).", temp: "Ice pack for the first 24 hours, warm compress after.", how: "Take painkillers after meals." }
   };
 
-  // Create the paragraph summary
-  let summaryParagraph = `Hello <strong>${name}</strong>. I understand you are experiencing <strong>${detectedSymptoms.join(", ")}</strong>. Please do not panic. Your symptoms are common and manageable. Below is a complete treatment plan including medicines, supportive diet, and natural care. Please follow the dosage strictly.`;
+  let summaryParagraph = `Hello <strong>${name}</strong>. I understand you are experiencing <strong>${detectedSymptoms.join(", ")}</strong>. Please do not panic. Your symptoms are common and manageable. Below is a complete treatment plan including medicines, supportive diet, and natural care.`;
+  if(firstAidHTML !== "") {
+      summaryParagraph = `Hello <strong>${name}</strong>. Based on your description, you have an injury. Please follow the <strong>First Aid steps immediately</strong> before taking any medicines. Do not panic.`;
+  }
 
-  // Create the Supportive Care HTML
   let careHTML = "";
   detectedSymptoms.forEach(sym => {
-    let advice = careAdvice[sym] || careAdvice["fever"]; // Fallback to general advice
+    let advice = careAdvice[sym] || careAdvice["fever"]; 
     careHTML += `
       <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #1b5e20;">
         <h4 style="margin-bottom: 8px;">💚 Supportive Care for ${sym.toUpperCase()}</h4>
@@ -372,13 +440,16 @@ function analyzeSymptoms() {
         <p><strong>Patient:</strong> ${name} | <strong>Age:</strong> ${age} | <strong>Gender:</strong> ${gender}</p>
         <p><strong>Reported Issues:</strong> ${detectedSymptoms.join(", ")} (Duration: ${duration})</p>
         
-        <!-- THE PARAGRAPH SUMMARY -->
+        <!-- EMERGENCY FIRST AID INJECTED HERE -->
+        ${firstAidHTML}
+        
+        <!-- PARAGRAPH SUMMARY -->
         <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; line-height: 1.5; color: #0b3d91;">
           <strong>🤖 AI Doctor's Reassurance:</strong><br>
           ${summaryParagraph}
         </div>
 
-        <!-- THE NEW SUPPORTIVE CARE BLOCK -->
+        <!-- SUPPORTIVE CARE BLOCK -->
         ${careHTML}
 
         <hr style="margin:15px 0; border-top:1px dashed #ccc;">
@@ -399,7 +470,6 @@ function analyzeSymptoms() {
     let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺' }[med.form] || '💊';
     let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
     
-    // Figure out which symptom this medicine treats
     let treats = med.symptoms.filter(s => detectedSymptoms.includes(s));
     let treatsText = treats.length > 0 ? `<span style="font-size:12px; color:#0077b6; font-weight:bold;">(For: ${treats.join(', ')})</span>` : '';
 
