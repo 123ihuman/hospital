@@ -229,7 +229,7 @@
 <script src="medicines.js"></script>
 
 <script>
-// --- GROQ API CONFIGURATION (PASTE YOUR NEW KEYS HERE) ---
+// --- GROQ API CONFIGURATION ---
 const GROQ_API_KEYS = [
   "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", 
   "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", 
@@ -238,6 +238,7 @@ const GROQ_API_KEYS = [
 ];
 const GROQ_MODEL = "openai/gpt-oss-120b";
 let currentKeyIndex = 0;
+let lastAnalysisContext = null; // Stores data for fallback
 
 // --- TAB SWITCHING LOGIC ---
 function switchTab(tabId) {
@@ -263,7 +264,6 @@ function analyzeSymptoms() {
   const gender = document.getElementById('pGender').value;
   const duration = document.getElementById('pDuration').value || "Not specified";
   
-  // --- JOINT DOCTOR PERSONA ---
   const doctorsText = "👩‍⚕️ Dr. Neha & 👨‍⚕️ Dr. Adarsh";
   
   let originalInput = document.getElementById('pSymptoms').value;
@@ -308,7 +308,7 @@ function analyzeSymptoms() {
   let isSenior = age > 65;
   let hasFever = rawSymptoms.includes("fever");
 
-  // Find matching medicines
+  // Find matching medicines for Fallback
   let detectedMeds = [];
   let matchedSymptoms = new Set();
 
@@ -343,147 +343,32 @@ function analyzeSymptoms() {
       </div>`;
   }
 
-  // --- 5. HYBRID AI LOGIC: LOCAL DB -> CACHE -> GROQ API ---
-  if (detectedMeds.length === 0 && firstAidHTML === "") {
-        const cachedResponse = localStorage.getItem('ai_cache_' + cleanInput);
-    if (cachedResponse) {
-      // Swap the Live AI badge to a Cached AI badge
-      let displayCache = cachedResponse.replace('🌐 Live AI (Groq)', '⚡ Cached AI Answer');
-      document.getElementById('reportContent').innerHTML = displayCache;
-      switchTab('report');
-      return;
-    }
-    fetchGroqResponse(originalInput, cleanInput);
+  // Save context for fallback if API fails
+  lastAnalysisContext = {
+    name, age, gender, duration, isChild, isSenior, hasFever, rawSymptoms, firstAidHTML, doctorsText,
+    detectedMeds, matchedSymptoms: Array.from(matchedSymptoms)
+  };
+
+  // --- 5. IF EMERGENCY, SHOW LOCAL FIRST AID IMMEDIATELY (SAFETY FIRST) ---
+  if (firstAidHTML !== "") {
+    buildLocalReport(); 
     return;
   }
 
-  // --- 6. BUILD LOCAL REPORT ---
-  let detectedSymptoms = Array.from(matchedSymptoms);
-  let reportHTML = "";
-
-  const careAdvice = {
-    "fever": { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", temp: "Use a damp cloth on forehead if very hot. Keep room ventilated.", how: "Take medicines with normal room temperature water after food." },
-    "vomiting": { eat: "BRAT diet (Banana, Rice, Applesauce, Toast), plain curd, ORS.", avoid: "Spicy, oily, or heavy dairy foods.", herbs: "Ginger tea, mint leaves, lemon water.", temp: "Sip fluids slowly and frequently.", how: "Take anti-vomiting tablet 30 mins before eating with a sip of water." },
-    "stomach ache": { eat: "Khichdi, curd rice, bananas, coconut water.", avoid: "Tea, coffee, spicy food, outside food.", herbs: "Ajwain (carom seed) water, fennel seeds (saunf).", temp: "Place a warm water bag on the stomach.", how: "Take medicines with warm water, strictly after food." },
-    "cough": { eat: "Warm water, honey, turmeric milk, soups.", avoid: "Cold water, ice cream, sour foods.", herbs: "Steam inhalation, ginger, Tulsi, Mulethi.", temp: "Avoid cold air and AC.", how: "Take syrup with warm water. Do not drink water immediately after." },
-    "cold": { eat: "Warm soups, ginger tea, turmeric milk.", avoid: "Cold foods, yogurt, bananas.", herbs: "Steam, Tulsi leaves, black pepper.", temp: "Keep yourself warm.", how: "Antihistamines cause drowsiness, take them with water at night." },
-    "body pain": { eat: "Protein-rich foods, warm water.", avoid: "Heavy physical exertion.", herbs: "Warm compress on joints.", temp: "Keep body warm.", how: "Take painkillers after a full meal with water." },
-    "headache": { eat: "Hydrate well, drink coconut water or lemon water.", avoid: "Loud noises, bright screens, skipping meals.", herbs: "Peppermint oil on temples.", temp: "Rest in a dark, quiet room.", how: "Take medicine with water. Do not take on an empty stomach." },
-    "toothache": { eat: "Soft foods, avoid chewing on the painful side.", avoid: "Very hot, cold, or sweet foods.", herbs: "Saltwater gargle, clove oil on the tooth.", temp: "Apply a cold pack on the outside of the cheek.", how: "Take painkillers after meals." },
-    "eye pain": { eat: "Vitamin A rich foods (carrots).", avoid: "Rubbing eyes, screens.", herbs: "Cold compress, splashing clean water.", temp: "Rest your eyes.", how: "Do not touch the dropper tip to your eye." },
-    "injury": { eat: "Protein-rich foods for healing.", avoid: "Moving the injured part too much.", herbs: "Turmeric milk (anti-inflammatory).", temp: "Ice pack for the first 24 hours, warm compress after.", how: "Take painkillers after meals." }
-  };
-  
-  // --- OPTIONAL RECOVERY BOOSTERS ---
-  const boosterMap = {
-    "fever": "Vitamin C (Oranges, Amla), Zinc supplements, and plenty of fresh juices (like Mosambi or Coconut water).",
-    "cold": "Warm Kadha with Tulsi/Ginger, Vitamin C chewable tablets, and Chyawanprash.",
-    "cough": "Honey with ginger, Mulethi (Licorice) tea, and Vitamin C lozenges.",
-    "weakness": "Iron & Folic Acid tonic (like Livogen), Multivitamin pills, Dates, and Bananas.",
-    "vomiting": "Electral ORS, Probiotic drinks (Yakult), and Coconut water.",
-    "stomach ache": "Probiotic curd, Jeera (Cumin) water, and a Multivitamin after recovery.",
-    "injury": "Calcium + Vitamin D3 tablets, Protein powder (Ensure/Nuramen), and Turmeric milk for healing.",
-    "body pain": "Vitamin B-Complex capsules, Magnesium-rich foods (nuts/seeds), and warm water.",
-    "headache": "Magnesium supplements, hydration (lemon water), and Vitamin B2.",
-    "periods issues": "Iron tonic, Calcium tablets, and Folic acid rich foods (green leafy vegetables).",
-    "no hunger": "PediaSure (for kids) or Protinex (for adults), and Vitamin B-Complex syrup to boost appetite."
-  };
-
-  let summaryParagraph = `Hello <strong>${name}</strong>, we are ${doctorsText}. We understand you are experiencing <strong>${detectedSymptoms.join(", ")}</strong>. Please do not panic. Your symptoms are common and manageable. Below is a complete treatment plan including medicines, supportive diet, and natural care.`;
-  if(firstAidHTML !== "") {
-      summaryParagraph = `Hello <strong>${name}</strong>, we are ${doctorsText}. Based on your description, you have an injury. Please follow the <strong>First Aid steps immediately</strong> before taking any medicines. Do not panic.`;
+  // --- 6. CHECK CACHE ---
+  const cachedResponse = localStorage.getItem('ai_cache_' + cleanInput);
+  if (cachedResponse) {
+    let displayCache = cachedResponse.replace('🌐 Live AI (Groq)', '⚡ Cached AI Answer');
+    document.getElementById('reportContent').innerHTML = displayCache;
+    switchTab('report');
+    return;
   }
 
-  let careHTML = "";
-  detectedSymptoms.forEach(sym => {
-    let advice = careAdvice[sym] || careAdvice["fever"]; 
-    careHTML += `
-      <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #1b5e20;">
-        <h4 style="margin-bottom: 8px;">💚 Supportive Care for ${sym.toUpperCase()}</h4>
-        <ul style="margin-left: 20px; line-height: 1.6;">
-          <li>🍲 <strong>Food to Eat:</strong> ${advice.eat}</li>
-          <li>🚫 <strong>Food to Avoid:</strong> ${advice.avoid}</li>
-          <li>🌿 <strong>Natural Herbs/Remedies:</strong> ${advice.herbs}</li>
-          <li>🌡️ <strong>Care & Temperature:</strong> ${advice.temp}</li>
-          <li>💧 <strong>How to take medicine:</strong> ${advice.how}</li>
-        </ul>
-      </div>`;
-  });
-
-  reportHTML += `
-    <div class="report-card">
-           <div class="report-header">
-        <div>
-          <h2 style="color:white; border:none; margin:0; padding:0;">Health Report Card</h2>
-          <span style="background: var(--success); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block;">💾 Verified Local Database</span>
-        </div>
-        <span>${new Date().toLocaleString()}</span>
-      </div>
-      <div class="report-body">
-        <p><strong>Patient:</strong> ${name} | <strong>Age:</strong> ${age} | <strong>Gender:</strong> ${gender}</p>
-        <p><strong>Reported Issues:</strong> ${detectedSymptoms.join(", ")} (Duration: ${duration})</p>
-        ${firstAidHTML}
-                <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; line-height: 1.5; color: #0b3d91;">
-          <strong>${doctorsText}'s Advice:</strong><br>${summaryParagraph}
-        </div>
-               ${careHTML}
-        
-        <!-- OPTIONAL BOOSTERS SECTION -->
-        <div style="background: #fff3cd; border-left: 4px solid #ffb703; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #856404;">
-          <h4 style="margin-bottom: 8px;">🛒 Optional Recovery Boosters (Supplements & Diet)</h4>
-          <p style="margin-bottom: 5px;">Along with the medicines, doctors usually recommend these to help you recover faster:</p>
-          <ul style="margin-left: 20px; line-height: 1.6;">
-            ${detectedSymptoms.map(sym => `<li><strong>${sym.toUpperCase()}:</strong> ${boosterMap[sym] || "Multivitamins, fresh fruits, and plenty of water."}</li>`).join('')}
-          </ul>
-          <p style="font-size: 12px; margin-top: 8px; font-style: italic;">*Note: These are optional. Fruits and a good diet are better than artificial supplements.</p>
-        </div>
-
-        <hr style="margin:15px 0; border-top:1px dashed #ccc;">`;
-
-  if (isChild) reportHTML += `<div class="warning-card">🚨 <strong>PEDIATRIC WARNING:</strong> For children under 12, DO NOT give adult cough/cold syrups. Consult a pediatrician.</div>`;
-  if (isSenior) reportHTML += `<div class="warning-card">👴 <strong>SENIOR CITIZEN NOTE:</strong> Lower doses may be needed.</div>`;
-  if (hasFever && rawSymptoms.includes("cough")) reportHTML += `<div class="warning-card">⚠️ <strong>COMBINATION ALERT:</strong> DO NOT take an extra Paracetamol tablet if you are taking cough syrup.</div>`;
-
-  detectedMeds.forEach(med => {
-        let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺', Powder: '🥛', "Diagnostic Scan": '🩻' }[med.form] || '💊';
-        let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
-    // Form Type Badge
-    let formLabel = `<span style="background:#e0e0e0; color:#333; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">${med.form}</span>`;
-    let treats = med.symptoms.filter(s => detectedSymptoms.includes(s));
-    let treatsText = treats.length > 0 ? `<span style="font-size:12px; color:#0077b6; font-weight:bold;">(For: ${treats.join(', ')})</span>` : '';
-    let dosageInfo = med.dosage_adult;
-    let extraWarning = "";
-
-    if (isChild) {
-      dosageInfo = med.dosage_child;
-      if (med.dosage_child.toLowerCase().includes("consult") || med.dosage_child.toLowerCase().includes("doctor")) {
-        extraWarning = `<div class="warning-card" style="margin-top:10px; margin-bottom:0; padding:10px;">🚨 <strong>PEDIATRIC ALERT:</strong> ${med.dosage_child}. Do not guess the dose for a child.</div>`;
-      } else {
-        extraWarning = `<div class="info-card" style="margin-top:10px; margin-bottom:0; padding:10px; background:#fff3cd;">👶 <strong>PEDIATRIC DOSE:</strong> ${med.dosage_child}</div>`;
-      }
-    } else {
-      if (med.form === "Syrup") dosageInfo += ` (${med.mg_per_5ml}mg per 5ml)`;
-      if (med.form === "Injection" || med.rx_required) dosageInfo = `<strong style="color:#d90429;">PRESCRIPTION ONLY.</strong> Must be given by a doctor/nurse.`;
-    }
-
-    reportHTML += `
-      <div style="margin-top:20px; background:#f8f9fa; padding:15px; border-radius:8px; border-left: 4px solid var(--secondary);">
-                <h4 style="color:var(--primary); margin-bottom:10px;">${icon} ${med.generic_name} (${med.strength}) ${rxBadge} ${formLabel} <br><span style="font-size:13px; font-weight:normal;">${treatsText}</span></h4>
-        <p><strong>Brands:</strong> ${med.brand_names.join(', ')}</p>
-        <p><strong>Price:</strong> <span class="price-tag">₹${med.price_inr} ${med.price_unit}</span></p>
-        <div class="dosage-line"><strong>💊 Dose:</strong> ${dosageInfo}</div>
-        <div class="dosage-line"><strong>⏱️ Max Limit:</strong> ${med.max_daily}</div>
-        ${extraWarning}
-        <p style="margin-top:10px;"><strong>🌿 Natural Aid:</strong> ${med.natural_aid}</p>
-        <p style="font-size:13px; color:#d90429; margin-top:5px;"><strong>⚠️ Warning:</strong> ${med.warning}</p>
-      </div>`;
-  });
-
-  document.getElementById('reportContent').innerHTML = reportHTML;
-  switchTab('report');
+  // --- 7. ALWAYS CALL GROQ API FIRST ---
+  fetchGroqResponse(originalInput, cleanInput);
 }
 
-// --- GROQ API FETCH WITH DOCTOR PERSONA & OFFLINE FALLBACK ---
+// --- GROQ API FETCH ---
 async function fetchGroqResponse(originalInput, cacheKey) {
   document.getElementById('reportContent').innerHTML = `
     <div style="text-align: center; padding: 50px;">
@@ -492,16 +377,19 @@ async function fetchGroqResponse(originalInput, cacheKey) {
     </div>`;
   switchTab('report');
 
-  const doctorsText = "👩‍⚕️ Dr. Neha & 👨‍⚕️ Dr. Adarsh";
+  const doctorsText = lastAnalysisContext.doctorsText;
+  const age = lastAnalysisContext.age;
+  const gender = lastAnalysisContext.gender;
+  const isChild = lastAnalysisContext.isChild;
 
-        const systemPrompt = `You are a medical team consisting of ${doctorsText}, kind, supportive, and experienced Indian doctors. 
-  A patient has described their symptoms in English or Hinglish: "${originalInput}". 
+  const systemPrompt = `You are a medical team consisting of ${doctorsText}, kind, supportive, and experienced Indian doctors. 
+  A patient (Age: ${age}, Gender: ${gender}) has described their symptoms in English or Hinglish: "${originalInput}". 
   Respond in simple, supportive Hinglish (Hindi written in English letters). 
   Do NOT panic the patient. Structure your reply as a friendly doctor:
   1. A reassuring opening paragraph (e.g., "We are ${doctorsText} here. Aap ghabraiye mat...").
   2. The likely issue and immediate home care (herbs, food, rest).
   3. Suggest 2 common Oral medicines (tablets/syrups) with dosage.
-  4. Suggest 1-2 OPTIONAL Recovery Boosters (like Multivitamins, Iron tonics, Protein powders like Ensure/Protinex, or fruits/juices). Explain why they are good (e.g., "Weakness ke liye Protinex lo").
+  4. Suggest 1-2 OPTIONAL Recovery Boosters (like Multivitamins, Iron tonics, Protein powders, or fruits/juices).
   5. If symptoms sound severe, SUGGEST A DIAGNOSTIC TEST (X-ray, Ultrasound, or MRI) and explain why.
   6. A strict warning: "Agar 2 din me aaram na mile, toh turant doctor se milein."
   Keep the tone warm, comforting, and professional.`;
@@ -529,13 +417,12 @@ async function fetchGroqResponse(originalInput, cacheKey) {
 
       if (response.ok) {
         currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
-        
         const data = await response.json();
         const aiReply = data.choices[0].message.content;
 
         const aiHTML = `
           <div class="report-card" style="border: 2px solid #00b4d8;">
-                       <div class="report-header" style="background: #00b4d8; display: flex; justify-content: space-between; align-items: center;">
+            <div class="report-header" style="background: #00b4d8; display: flex; justify-content: space-between; align-items: center;">
               <div>
                 <h2 style="color:white; border:none; margin:0; padding:0;">${doctorsText}'s Advice</h2>
                 <span style="background: #023e8a; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block;">🌐 Live AI (Groq)</span>
@@ -557,37 +444,160 @@ async function fetchGroqResponse(originalInput, cacheKey) {
         switchTab('report');
         return; 
       } 
-      
       else if (response.status === 429) {
-        console.warn(`Key ${currentKeyIndex} hit rate limit. Switching to next key...`);
         currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
         attempts++;
         await new Promise(resolve => setTimeout(resolve, 500)); 
       } 
-      
       else {
         throw new Error(`API Error: ${response.status}`);
       }
     } catch (error) {
-      console.error("Fetch error:", error);
-      if (error.message.includes("Failed to fetch")) {
-        break; 
-      }
+      if (error.message.includes("Failed to fetch")) { break; }
       attempts++;
     }
   }
 
-  console.log("All API keys exhausted or offline. Generating Offline Triage Report...");
-  generateOfflineFallback(originalInput, doctorsText);
+  // --- API LIMITS EXHAUSTED OR OFFLINE: FALLBACK TO LOCAL DATABASE ---
+  console.log("All API keys exhausted or offline. Falling back to Local Database...");
+  
+  if (lastAnalysisContext.detectedMeds.length > 0) {
+    buildLocalReport();
+  } else {
+    generateOfflineFallback(originalInput, doctorsText);
+  }
+}
+
+// --- BUILD LOCAL REPORT (FALLBACK) ---
+function buildLocalReport() {
+  const c = lastAnalysisContext; // Shortcut
+  let reportHTML = "";
+  
+  const careAdvice = {
+    "fever": { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", temp: "Use a damp cloth on forehead if very hot. Keep room ventilated.", how: "Take medicines with normal room temperature water after food." },
+    "vomiting": { eat: "BRAT diet (Banana, Rice, Applesauce, Toast), plain curd, ORS.", avoid: "Spicy, oily, or heavy dairy foods.", herbs: "Ginger tea, mint leaves, lemon water.", temp: "Sip fluids slowly and frequently.", how: "Take anti-vomiting tablet 30 mins before eating with a sip of water." },
+    "stomach ache": { eat: "Khichdi, curd rice, bananas, coconut water.", avoid: "Tea, coffee, spicy food, outside food.", herbs: "Ajwain (carom seed) water, fennel seeds (saunf).", temp: "Place a warm water bag on the stomach.", how: "Take medicines with warm water, strictly after food." },
+    "cough": { eat: "Warm water, honey, turmeric milk, soups.", avoid: "Cold water, ice cream, sour foods.", herbs: "Steam inhalation, ginger, Tulsi, Mulethi.", temp: "Avoid cold air and AC.", how: "Take syrup with warm water. Do not drink water immediately after." },
+    "cold": { eat: "Warm soups, ginger tea, turmeric milk.", avoid: "Cold foods, yogurt, bananas.", herbs: "Steam, Tulsi leaves, black pepper.", temp: "Keep yourself warm.", how: "Antihistamines cause drowsiness, take them with water at night." },
+    "body pain": { eat: "Protein-rich foods, warm water.", avoid: "Heavy physical exertion.", herbs: "Warm compress on joints.", temp: "Keep body warm.", how: "Take painkillers after a full meal with water." },
+    "headache": { eat: "Hydrate well, drink coconut water or lemon water.", avoid: "Loud noises, bright screens, skipping meals.", herbs: "Peppermint oil on temples.", temp: "Rest in a dark, quiet room.", how: "Take medicine with water. Do not take on an empty stomach." },
+    "toothache": { eat: "Soft foods, avoid chewing on the painful side.", avoid: "Very hot, cold, or sweet foods.", herbs: "Saltwater gargle, clove oil on the tooth.", temp: "Apply a cold pack on the outside of the cheek.", how: "Take painkillers after meals." },
+    "eye pain": { eat: "Vitamin A rich foods (carrots).", avoid: "Rubbing eyes, screens.", herbs: "Cold compress, splashing clean water.", temp: "Rest your eyes.", how: "Do not touch the dropper tip to your eye." },
+    "injury": { eat: "Protein-rich foods for healing.", avoid: "Moving the injured part too much.", herbs: "Turmeric milk (anti-inflammatory).", temp: "Ice pack for the first 24 hours, warm compress after.", how: "Take painkillers after meals." }
+  };
+  
+  const boosterMap = {
+    "fever": "Vitamin C (Oranges, Amla), Zinc supplements, and plenty of fresh juices (like Mosambi or Coconut water).",
+    "cold": "Warm Kadha with Tulsi/Ginger, Vitamin C chewable tablets, and Chyawanprash.",
+    "cough": "Honey with ginger, Mulethi (Licorice) tea, and Vitamin C lozenges.",
+    "weakness": "Iron & Folic Acid tonic (like Livogen), Multivitamin pills, Dates, and Bananas.",
+    "vomiting": "Electral ORS, Probiotic drinks (Yakult), and Coconut water.",
+    "stomach ache": "Probiotic curd, Jeera (Cumin) water, and a Multivitamin after recovery.",
+    "injury": "Calcium + Vitamin D3 tablets, Protein powder (Ensure/Nuramen), and Turmeric milk for healing.",
+    "body pain": "Vitamin B-Complex capsules, Magnesium-rich foods (nuts/seeds), and warm water.",
+    "headache": "Magnesium supplements, hydration (lemon water), and Vitamin B2.",
+    "periods issues": "Iron tonic, Calcium tablets, and Folic acid rich foods (green leafy vegetables).",
+    "no hunger": "PediaSure (for kids) or Protinex (for adults), and Vitamin B-Complex syrup to boost appetite."
+  };
+
+  let summaryParagraph = `Hello <strong>${c.name}</strong>, we are ${c.doctorsText}. We understand you are experiencing <strong>${c.matchedSymptoms.join(", ")}</strong>. Please do not panic. Your symptoms are common and manageable. Below is a complete treatment plan including medicines, supportive diet, and natural care.`;
+  if(c.firstAidHTML !== "") {
+      summaryParagraph = `Hello <strong>${c.name}</strong>, we are ${c.doctorsText}. Based on your description, you have an injury. Please follow the <strong>First Aid steps immediately</strong> before taking any medicines. Do not panic.`;
+  }
+
+  let careHTML = "";
+  c.matchedSymptoms.forEach(sym => {
+    let advice = careAdvice[sym] || careAdvice["fever"]; 
+    careHTML += `
+      <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #1b5e20;">
+        <h4 style="margin-bottom: 8px;">💚 Supportive Care for ${sym.toUpperCase()}</h4>
+        <ul style="margin-left: 20px; line-height: 1.6;">
+          <li>🍲 <strong>Food to Eat:</strong> ${advice.eat}</li>
+          <li>🚫 <strong>Food to Avoid:</strong> ${advice.avoid}</li>
+          <li>🌿 <strong>Natural Herbs/Remedies:</strong> ${advice.herbs}</li>
+          <li>🌡️ <strong>Care & Temperature:</strong> ${advice.temp}</li>
+          <li>💧 <strong>How to take medicine:</strong> ${advice.how}</li>
+        </ul>
+      </div>`;
+  });
+
+  reportHTML += `
+    <div class="report-card">
+      <div class="report-header">
+        <div>
+          <h2 style="color:white; border:none; margin:0; padding:0;">Health Report Card</h2>
+          <span style="background: var(--success); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block;">💾 Verified Local Database (API Limit Reached)</span>
+        </div>
+        <span>${new Date().toLocaleString()}</span>
+      </div>
+      <div class="report-body">
+        <p><strong>Patient:</strong> ${c.name} | <strong>Age:</strong> ${c.age} | <strong>Gender:</strong> ${c.gender}</p>
+        <p><strong>Reported Issues:</strong> ${c.matchedSymptoms.join(", ")} (Duration: ${c.duration})</p>
+        ${c.firstAidHTML}
+        <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; line-height: 1.5; color: #0b3d91;">
+          <strong>${c.doctorsText}'s Advice:</strong><br>${summaryParagraph}
+        </div>
+        ${careHTML}
+        
+        <div style="background: #fff3cd; border-left: 4px solid #ffb703; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #856404;">
+          <h4 style="margin-bottom: 8px;">🛒 Optional Recovery Boosters (Supplements & Diet)</h4>
+          <p style="margin-bottom: 5px;">Along with the medicines, doctors usually recommend these to help you recover faster:</p>
+          <ul style="margin-left: 20px; line-height: 1.6;">
+            ${c.matchedSymptoms.map(sym => `<li><strong>${sym.toUpperCase()}:</strong> ${boosterMap[sym] || "Multivitamins, fresh fruits, and plenty of water."}</li>`).join('')}
+          </ul>
+          <p style="font-size: 12px; margin-top: 8px; font-style: italic;">*Note: These are optional. Fruits and a good diet are better than artificial supplements.</p>
+        </div>
+
+        <hr style="margin:15px 0; border-top:1px dashed #ccc;">`;
+
+  if (c.isChild) reportHTML += `<div class="warning-card">🚨 <strong>PEDIATRIC WARNING:</strong> For children under 12, DO NOT give adult cough/cold syrups. Consult a pediatrician.</div>`;
+  if (c.isSenior) reportHTML += `<div class="warning-card">👴 <strong>SENIOR CITIZEN NOTE:</strong> Lower doses may be needed.</div>`;
+  if (c.hasFever && c.rawSymptoms.includes("cough")) reportHTML += `<div class="warning-card">⚠️ <strong>COMBINATION ALERT:</strong> DO NOT take an extra Paracetamol tablet if you are taking cough syrup.</div>`;
+
+  c.detectedMeds.forEach(med => {
+    let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺', Powder: '🥛', "Diagnostic Scan": '🩻' }[med.form] || '💊';
+    let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
+    let formLabel = `<span style="background:#e0e0e0; color:#333; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">${med.form}</span>`;
+    
+    let treats = med.symptoms.filter(s => c.matchedSymptoms.includes(s));
+    let treatsText = treats.length > 0 ? `<span style="font-size:12px; color:#0077b6; font-weight:bold;">(For: ${treats.join(', ')})</span>` : '';
+    let dosageInfo = med.dosage_adult;
+    let extraWarning = "";
+
+    if (c.isChild) {
+      dosageInfo = med.dosage_child;
+      if (med.dosage_child.toLowerCase().includes("consult") || med.dosage_child.toLowerCase().includes("doctor")) {
+        extraWarning = `<div class="warning-card" style="margin-top:10px; margin-bottom:0; padding:10px;">🚨 <strong>PEDIATRIC ALERT:</strong> ${med.dosage_child}. Do not guess the dose for a child.</div>`;
+      } else {
+        extraWarning = `<div class="info-card" style="margin-top:10px; margin-bottom:0; padding:10px; background:#fff3cd;">👶 <strong>PEDIATRIC DOSE:</strong> ${med.dosage_child}</div>`;
+      }
+    } else {
+      if (med.form === "Syrup") dosageInfo += ` (${med.mg_per_5ml}mg per 5ml)`;
+      if (med.form === "Injection" || med.rx_required) dosageInfo = `<strong style="color:#d90429;">PRESCRIPTION ONLY.</strong> Must be given by a doctor/nurse.`;
+    }
+
+    reportHTML += `
+      <div style="margin-top:20px; background:#f8f9fa; padding:15px; border-radius:8px; border-left: 4px solid var(--secondary);">
+        <h4 style="color:var(--primary); margin-bottom:10px;">${icon} ${med.generic_name} (${med.strength}) ${rxBadge} ${formLabel} <br><span style="font-size:13px; font-weight:normal;">${treatsText}</span></h4>
+        <p><strong>Brands:</strong> ${med.brand_names.join(', ')}</p>
+        <p><strong>Price:</strong> <span class="price-tag">₹${med.price_inr} ${med.price_unit}</span></p>
+        <div class="dosage-line"><strong>💊 Dose:</strong> ${dosageInfo}</div>
+        <div class="dosage-line"><strong>⏱️ Max Limit:</strong> ${med.max_daily}</div>
+        ${extraWarning}
+        <p style="margin-top:10px;"><strong>🌿 Natural Aid:</strong> ${med.natural_aid}</p>
+        <p style="font-size:13px; color:#d90429; margin-top:5px;"><strong>⚠️ Warning:</strong> ${med.warning}</p>
+      </div>`;
+  });
+
+  document.getElementById('reportContent').innerHTML = reportHTML;
+  switchTab('report');
 }
 
 // --- OFFLINE EMERGENCY TRIAGE FALLBACK ---
 function generateOfflineFallback(originalInput, doctorsText) {
-  let rawSymptoms = originalInput.toLowerCase();
-  
   let fallbackHTML = `
     <div class="report-card" style="border: 2px solid var(--warning);">
-            <div class="report-header" style="background: var(--warning); color: #333; display: flex; justify-content: space-between; align-items: center;">
+      <div class="report-header" style="background: var(--warning); color: #333; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h2 style="color:#333; border:none; margin:0; padding:0;">${doctorsText}'s Offline Triage</h2>
           <span style="background: #d90429; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block;">🛑 Offline Fallback</span>
@@ -631,6 +641,7 @@ function generateOfflineFallback(originalInput, doctorsText) {
   `;
 
   document.getElementById('reportContent').innerHTML = fallbackHTML;
+  switchTab('report');
 }
 
 // --- DYNAMIC SEARCH & FILTER LOGIC ---
@@ -653,9 +664,8 @@ function renderMedicineList() {
   }
   
   container.innerHTML = filtered.map(med => {
-        let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺', Powder: '🥛', "Diagnostic Scan": '🩻' }[med.form] || '💊';
-        let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
-    // Form Type Badge Fix
+    let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺', Powder: '🥛', "Diagnostic Scan": '🩻' }[med.form] || '💊';
+    let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
     let formLabel = `<span style="background:#e0e0e0; color:#333; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">${med.form}</span>`;
     
     return `
