@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediGuide Pro - Advanced Symptom & Medicine Panel</title>
+<style>
+  :root {
+    --primary: #0b3d91;
+    --secondary: #0077b6;
+    --accent: #00b4d8;
+    --bg: #f4f7f6;
+    --card: #ffffff;
+    --text: #2b2d42;
+    --danger: #d90429;
+    --warning: #ffb703;
+    --success: #2a9d8f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  body { background: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: 50px; }
+  
+  /* Navigation */
+  .navbar {
+    background: var(--primary); color: white; padding: 15px 20px;
+    position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  .navbar h1 { font-size: 20px; letter-spacing: 0.5px; }
+  .nav-links { display: flex; gap: 15px; font-size: 14px; font-weight: 600; }
+  .nav-links span { cursor: pointer; opacity: 0.7; transition: 0.3s; }
+  .nav-links span:hover, .nav-links span.active { opacity: 1; border-bottom: 2px solid var(--accent); }
+
+  /* Container */
+  .container { max-width: 850px; margin: 20px auto; padding: 0 15px; }
+  
+  /* Cards & Panels */
+  .panel {
+    background: var(--card); border-radius: 12px; padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px;
+    border-left: 5px solid var(--secondary);
+    display: none; /* Hidden by default, toggled via JS */
+  }
+  .panel.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  h2 { color: var(--primary); margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
+  h3 { color: var(--secondary); margin: 20px 0 10px 0; font-size: 18px; }
+  
+  /* Form Elements */
+  label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; color: var(--primary); }
+  input, select, textarea {
+    width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px;
+    font-size: 15px; margin-bottom: 15px; background: #f9f9f9; transition: 0.3s;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); outline: none; background: #fff; box-shadow: 0 0 5px rgba(0,180,216,0.3); }
+  textarea { resize: vertical; min-height: 80px; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 150px; }
+
+  /* Buttons */
+  button {
+    background: var(--primary); color: white; border: none; padding: 14px 20px;
+    border-radius: 6px; font-size: 16px; font-weight: 700; cursor: pointer;
+    width: 100%; transition: 0.3s; margin-top: 10px;
+    display: flex; justify-content: center; align-items: center; gap: 10px;
+  }
+  button:hover { background: var(--secondary); transform: translateY(-2px); }
+  .btn-print { background: var(--success); margin-top: 15px; }
+
+  /* Informational Text */
+  .disclaimer-box {
+    background: #fff3cd; border: 1px solid #ffeeba; color: #856404;
+    padding: 15px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 20px;
+  }
+  .info-card { background: #e7f5ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; border-left: 4px solid var(--secondary); }
+  .warning-card { background: #f8d7da; color: #721c24; border-left: 4px solid var(--danger); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; }
+
+  /* Report Card Styling */
+  .report-section { display: none; margin-top: 20px; }
+  .report-card { border: 2px solid var(--primary); border-radius: 8px; overflow: hidden; }
+  .report-header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; }
+  .report-body { padding: 20px; background: #fff; }
+  .med-pill { display: inline-block; background: var(--secondary); color: white; padding: 3px 10px; border-radius: 20px; font-size: 12px; margin-right: 5px; margin-bottom: 5px; }
+  .price-tag { font-weight: bold; color: var(--success); }
+  .dosage-line { background: #f1f1f1; padding: 8px; border-radius: 4px; margin: 5px 0; font-size: 13px; font-family: monospace; }
+  
+  /* Footer */
+  footer { text-align: center; font-size: 12px; color: #777; margin-top: 30px; }
+  
+  @media print {
+    .navbar, .nav-links, button, .disclaimer-box, #panel-input, .translate-strip { display: none !important; }
+    #panel-report { display: block !important; box-shadow: none; border: none; }
+    body { background: white; padding: 0; }
+  }
+  
+  /* Google Translate Strip Styles */
+  .translate-strip { background: #e0e0e0; padding: 5px 20px; display: flex; justify-content: flex-end; align-items: center; font-size: 12px; border-bottom: 1px solid #ccc; }
+  .goog-te-gadget { font-family: 'Segoe UI', sans-serif !important; color: transparent !important; }
+  .goog-te-gadget .goog-te-combo { padding: 2px 5px; border-radius: 4px; border: 1px solid #999; font-size: 12px; color: #333; }
+  .goog-logo-link { display:none !important; }
+  .goog-te-banner-frame { display: none !important; }
+  body { top: 0px !important; }
+</style>
+</head>
+<body>
+
+<!-- Google Translate Strip -->
+<div class="translate-strip">
+  <span style="margin-right: 10px; color: #333; font-weight: bold;">🌐 Language:</span>
+  <div id="google_translate_element"></div>
+</div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+  }
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<div class="navbar">
+  <h1>🩺 MediGuide Pro</h1>
+  <div class="nav-links">
+    <span onclick="switchTab('input')" class="active">Symptom Checker</span>
+    <span onclick="switchTab('info')">Medicine Info</span>
+    <span onclick="switchTab('report')">Report Card</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- PANEL 1: SYMPTOM INPUT (Multi-symptom) -->
+  <div id="panel-input" class="panel active">
+    <h2>Patient & Symptom Details</h2>
+
+    <div class="row">
+      <div>
+        <label>Patient Name</label>
+        <input type="text" id="pName" placeholder="Enter full name" value="Guest">
+      </div>
+      <div>
+        <label>Age (Years)</label>
+        <input type="number" id="pAge" placeholder="e.g. 25" min="1" max="120">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Gender</label>
+        <select id="pGender">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label>Duration (Days)</label>
+        <input type="number" id="pDuration" placeholder="e.g. 2" min="1">
+      </div>
+    </div>
+
+    <label>Type Your Issues (Use commas, spaces, or full sentences)</label>
+    <textarea id="pSymptoms" placeholder="Example: I am suffering from fever from 2 days with cold tell me what medicine i take"></textarea>
+    <p style="font-size:12px; color:#666; margin-top:-10px; margin-bottom:15px;">
+      <em>Tip: You can type full sentences now. The AI will extract the symptoms automatically.</em>
+    </p>
+
+    <button onclick="analyzeSymptoms()">🔍 Analyze & Generate Report</button>
+  </div>
+
+  <!-- PANEL 2: INFO & PRICES (Dynamic Search Engine) -->
+  <div id="panel-info" class="panel">
+    <h2>📊 Medicine Database</h2>
+    
+    <!-- Search & Filter Controls -->
+    <div class="row" style="margin-bottom: 20px;">
+      <div>
+        <label>Search Medicine</label>
+        <input type="text" id="searchMed" placeholder="Type generic or brand name..." oninput="renderMedicineList()" style="margin-bottom: 0;">
+      </div>
+      <div>
+        <label>Filter by Form</label>
+        <select id="filterForm" onchange="renderMedicineList()" style="margin-bottom: 0;">
+          <option value="all">All Forms (Tablets, Syrups, etc.)</option>
+          <option value="Tablet">Tablet</option>
+          <option value="Syrup">Syrup</option>
+          <option value="Injection">Injection</option>
+          <option value="Syringe">Syringe</option>
+          <option value="Gel">Gel</option>
+          <option value="Device">Device</option>
+          <option value="Drops">Drops</option>
+          <option value="Cream">Cream</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Results Container -->
+    <div id="medListContainer" style="max-height: 500px; overflow-y: auto; padding-right: 5px;">
+      <!-- JavaScript will inject the medicines here -->
+    </div>
+  </div>
+
+  <!-- PANEL 3: DYNAMIC REPORT CARD (Hidden until generated) -->
+  <div id="panel-report" class="panel">
+    <div id="reportContent" class="report-section" style="display:block;">
+      <!-- Injected via JS -->
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="row" style="margin-top: 15px; gap: 10px;">
+      <div style="flex: 1; min-width: 120px;">
+        <button class="btn-print" onclick="window.print()" style="margin-top: 0;">🖨️ Print / PDF</button>
+      </div>
+      <div style="flex: 1; min-width: 120px;">
+        <button onclick="copyReport()" style="background:#0b3d91; margin-top: 0;">📋 Copy Text</button>
+      </div>
+      <div style="flex: 1; min-width: 120px;">
+        <button onclick="shareWhatsApp()" style="background:#25D366; margin-top: 0;">📱 Share WhatsApp</button>
+      </div>
+      <div style="flex: 1; min-width: 120px;">
+        <button style="background:#6c757d; margin-top: 0;" onclick="switchTab('input')">↺ New Check</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    MediGuide Pro v2.0 • Data verified for Indian market context • Not a substitute for professional medical advice.
+  </footer>
+</div>
+
+<!-- Load the external database first -->
+<script src="medicines.js"></script>
+
+<!-- Main Logic -->
+<script>
+// --- TAB SWITCHING LOGIC ---
+function switchTab(tabId) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links span').forEach(s => s.classList.remove('active'));
+  
+  if(tabId === 'input') document.getElementById('panel-input').classList.add('active');
+  if(tabId === 'info') document.getElementById('panel-info').classList.add('active');
+  if(tabId === 'report') document.getElementById('panel-report').classList.add('active');
+  
+  const links = document.querySelectorAll('.nav-links span');
+  if(tabId === 'input') links[0].classList.add('active');
+  if(tabId === 'info') links[1].classList.add('active');
+  if(tabId === 'report') links[2].classList.add('active');
+  
+  window.scrollTo(0,0);
+}
+
+// --- CORE ANALYSIS & NEW RENDER LOGIC ---
+function analyzeSymptoms() {
+  const name = document.getElementById('pName').value.trim() || "Guest Patient";
+  const age = parseInt(document.getElementById('pAge').value);
+  const gender = document.getElementById('pGender').value;
+  const duration = document.getElementById('pDuration').value || "Not specified";
+  
+  // Capture original text for the summary
+  let originalInput = document.getElementById('pSymptoms').value;
+  
+  // Clean text for matching
+  let rawSymptoms = originalInput.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+
+  if (!rawSymptoms || rawSymptoms.trim() === "") { alert("Please type at least one symptom."); return; }
+  if (isNaN(age) || age < 1) { alert("Please enter a valid age."); return; }
+
+  if (rawSymptoms.includes("chest pain") || rawSymptoms.includes("breathing") || rawSymptoms.includes("stiff neck")) {
+    alert("🚨 EMERGENCY SYMPTOM DETECTED. Please go to the nearest hospital immediately.");
+    return;
+  }
+
+  // --- SYNONYM MAP ---
+  const synonymMap = {
+    "temperature": "fever",
+    "high temp": "fever",
+    "loose motion": "stomach ache",
+    "diarrhea": "stomach ache",
+    "throwing up": "vomiting",
+    "puking": "vomiting",
+    "nausea": "vomiting",
+    "sneezing": "cold",
+    "runny nose": "cold",
+    "migraine": "headache",
+    "muscle pain": "body pain",
+    "joint pain": "body pain",
+    "high sugar": "diabetes",
+    "sugar": "diabetes",
+    "sore throat": "cough"
+  };
+
+  // Translate synonyms into database terms
+  for (let key in synonymMap) {
+    if (rawSymptoms.includes(key)) {
+      rawSymptoms += " " + synonymMap[key]; 
+    }
+  }
+
+  let isChild = age < 12;
+  let isSenior = age > 65;
+  let hasFever = rawSymptoms.includes("fever");
+
+  // Find matching medicines
+  let detectedMeds = [];
+  let matchedSymptoms = new Set();
+
+  MEDICINE_DATA.forEach(med => {
+    med.symptoms.forEach(sym => {
+      if (rawSymptoms.includes(sym)) {
+        matchedSymptoms.add(sym);
+        if (!detectedMeds.find(m => m.id === med.id)) {
+          detectedMeds.push(med);
+        }
+      }
+    });
+  });
+
+  if (detectedMeds.length === 0) {
+    alert("Symptom not found in database. Try simpler words like 'fever', 'stomach ache', 'weakness'.");
+    return;
+  }
+
+  let detectedSymptoms = Array.from(matchedSymptoms);
+  let reportHTML = "";
+
+  // Create the paragraph summary
+  let summaryParagraph = `Based on the description you provided ("<em>${originalInput}</em>"), it appears you are experiencing <strong>${detectedSymptoms.join(", ")}</strong>. Please review the suggested medicines below.`;
+  if (isChild) {
+    summaryParagraph += ` Since the patient is under 12, pediatric dosages are shown in yellow.`;
+  }
+
+  reportHTML += `
+    <div class="report-card">
+      <div class="report-header">
+        <h2 style="color:white; border:none; margin:0; padding:0;">Health Report Card</h2>
+        <span>${new Date().toLocaleString()}</span>
+      </div>
+      <div class="report-body">
+        <p><strong>Patient:</strong> ${name} | <strong>Age:</strong> ${age} | <strong>Gender:</strong> ${gender}</p>
+        <p><strong>Reported Issues:</strong> ${detectedSymptoms.join(", ")} (Duration: ${duration})</p>
+        
+        <!-- THE PARAGRAPH SUMMARY -->
+        <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; line-height: 1.5; color: #0b3d91;">
+          <strong>🤖 AI Analysis Summary:</strong><br>
+          ${summaryParagraph}
+        </div>
+
+        <hr style="margin:15px 0; border-top:1px dashed #ccc;">
+  `;
+
+  if (isChild) {
+    reportHTML += `<div class="warning-card">🚨 <strong>PEDIATRIC WARNING:</strong> For children under 12, DO NOT give adult cough/cold syrups. Consult a pediatrician.</div>`;
+  }
+  if (isSenior) {
+    reportHTML += `<div class="warning-card">👴 <strong>SENIOR CITIZEN NOTE:</strong> Lower doses may be needed.</div>`;
+  }
+  if (hasFever && rawSymptoms.includes("cough")) {
+    reportHTML += `<div class="warning-card">⚠️ <strong>COMBINATION ALERT:</strong> DO NOT take an extra Paracetamol tablet if you are taking cough syrup.</div>`;
+  }
+
+  // Render the detected medicines dynamically
+  detectedMeds.forEach(med => {
+    let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺' }[med.form] || '💊';
+    let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
+    
+    let dosageInfo = med.dosage_adult;
+    let extraWarning = "";
+
+    if (isChild) {
+      dosageInfo = med.dosage_child;
+      if (med.dosage_child.toLowerCase().includes("consult") || med.dosage_child.toLowerCase().includes("doctor")) {
+        extraWarning = `<div class="warning-card" style="margin-top:10px; margin-bottom:0; padding:10px;">🚨 <strong>PEDIATRIC ALERT:</strong> ${med.dosage_child}. Do not guess the dose for a child.</div>`;
+      } else {
+        extraWarning = `<div class="info-card" style="margin-top:10px; margin-bottom:0; padding:10px; background:#fff3cd;">👶 <strong>PEDIATRIC DOSE:</strong> ${med.dosage_child}</div>`;
+      }
+    } else {
+      if (med.form === "Syrup") dosageInfo += ` (${med.mg_per_5ml}mg per 5ml)`;
+      if (med.form === "Injection" || med.rx_required) dosageInfo = `<strong style="color:#d90429;">PRESCRIPTION ONLY.</strong> Must be given by a doctor/nurse.`;
+    }
+
+    reportHTML += `
+      <div style="margin-top:20px; background:#f8f9fa; padding:15px; border-radius:8px; border-left: 4px solid var(--secondary);">
+        <h4 style="color:var(--primary); margin-bottom:10px;">${icon} ${med.generic_name} (${med.strength}) ${rxBadge}</h4>
+        <p><strong>Brands:</strong> ${med.brand_names.join(', ')}</p>
+        <p><strong>Price:</strong> <span class="price-tag">₹${med.price_inr} ${med.price_unit}</span></p>
+        <div class="dosage-line"><strong>💊 Dose:</strong> ${dosageInfo}</div>
+        <div class="dosage-line"><strong>⏱️ Max Limit:</strong> ${med.max_daily}</div>
+        ${extraWarning}
+        <p style="margin-top:10px;"><strong>🌿 Natural Aid:</strong> ${med.natural_aid}</p>
+        <p style="font-size:13px; color:#d90429; margin-top:5px;"><strong>⚠️ Warning:</strong> ${med.warning}</p>
+      </div>
+    `;
+  });
+
+  reportHTML += `
+      <hr style="margin:20px 0;">
+      <div style="background:#e7f5ff; padding:15px; border-radius:8px; border:1px solid #00b4d8;">
+        <h4>🩺 Doctor Verification Checklist</h4>
+        <p style="font-size:13px;">Show this report to a <strong>pharmacist or MBBS doctor</strong> and ask:</p>
+        <ul style="font-size:13px; margin-left:20px; margin-top:5px;">
+          <li>"Is this safe for my age and weight?"</li>
+          <li>"Does this interact with my other medicines?"</li>
+          <li>"Am I allergic to any ingredient?"</li>
+        </ul>
+        <p style="font-size:12px; color:#666; margin-top:10px;"><em>Doctor's Signature: ______________________</em></p>
+      </div>
+      </div></div>
+  `;
+
+  document.getElementById('reportContent').innerHTML = reportHTML;
+  switchTab('report');
+}
+
+// --- DYNAMIC SEARCH & FILTER LOGIC ---
+function renderMedicineList() {
+  const query = document.getElementById('searchMed').value.toLowerCase();
+  const formFilter = document.getElementById('filterForm').value;
+  const container = document.getElementById('medListContainer');
+  
+  let filtered = MEDICINE_DATA.filter(med => {
+    const matchesSearch = med.generic_name.toLowerCase().includes(query) || 
+                          med.brand_names.join(' ').toLowerCase().includes(query) ||
+                          med.symptoms.join(' ').toLowerCase().includes(query);
+    const matchesForm = formFilter === 'all' || med.form === formFilter;
+    return matchesSearch && matchesForm;
+  });
+  
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No medicines found matching your search.</p>';
+    return;
+  }
+  
+  container.innerHTML = filtered.map(med => {
+    let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺' }[med.form] || '💊';
+    let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx</span>' : '';
+    
+    return `
+      <div class="info-card" style="margin-bottom: 10px; border-left: 4px solid ${med.rx_required ? 'var(--danger)' : 'var(--secondary)'};">
+        <h4 style="color:var(--primary); margin-bottom:5px;">${icon} ${med.generic_name} (${med.strength}) ${rxBadge}</h4>
+        <p style="font-size: 13px; margin-bottom: 5px;"><strong>Brands:</strong> ${med.brand_names.join(', ')}</p>
+        <p style="font-size: 13px; margin-bottom: 5px;"><strong>Price:</strong> <span class="price-tag">₹${med.price_inr} ${med.price_unit}</span></p>
+        <div class="dosage-line"><strong>Dose:</strong> ${med.dosage_adult}</div>
+        <p style="font-size: 12px; color: #d90429; margin-top: 5px;"><strong>Warning:</strong> ${med.warning}</p>
+      </div>
+    `;
+  }).join('');
+}
+
+// --- COPY & SHARE LOGIC ---
+function copyReport() {
+  const reportText = document.getElementById('reportContent').innerText;
+  navigator.clipboard.writeText(reportText).then(() => {
+    alert("✅ Report copied to clipboard!");
+  }).catch(err => {
+    alert("Failed to copy: " + err);
+  });
+}
+
+function shareWhatsApp() {
+  const reportText = document.getElementById('reportContent').innerText;
+  const encodedText = encodeURIComponent("MediGuide Pro Report:\n\n" + reportText);
+  window.open('https://api.whatsapp.com/send?text=' + encodedText, '_blank');
+}
+
+// Load the list automatically when the page opens
+window.onload = function() {
+  if (typeof MEDICINE_DATA !== 'undefined') {
+    renderMedicineList();
+  }
+};
+</script>
+
+</body>
+</html>
