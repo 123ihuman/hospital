@@ -382,17 +382,50 @@ async function fetchGroqResponse(originalInput, cacheKey) {
   const gender = lastAnalysisContext.gender;
   const isChild = lastAnalysisContext.isChild;
 
+  // --- NEW SYSTEM PROMPT: STRICT HTML, LANGUAGE MATCHING, DETAILED ---
   const systemPrompt = `You are a medical team consisting of ${doctorsText}, kind, supportive, and experienced Indian doctors. 
-  A patient (Age: ${age}, Gender: ${gender}) has described their symptoms in English or Hinglish: "${originalInput}". 
-  Respond in simple, supportive Hinglish (Hindi written in English letters). 
-  Do NOT panic the patient. Structure your reply as a friendly doctor:
-  1. A reassuring opening paragraph (e.g., "We are ${doctorsText} here. Aap ghabraiye mat...").
-  2. The likely issue and immediate home care (herbs, food, rest).
-  3. Suggest 2 common Oral medicines (tablets/syrups) with dosage.
-  4. Suggest 1-2 OPTIONAL Recovery Boosters (like Multivitamins, Iron tonics, Protein powders, or fruits/juices).
-  5. If symptoms sound severe, SUGGEST A DIAGNOSTIC TEST (X-ray, Ultrasound, or MRI) and explain why.
-  6. A strict warning: "Agar 2 din me aaram na mile, toh turant doctor se milein."
-  Keep the tone warm, comforting, and professional.`;
+  Patient Details: Age: ${age}, Gender: ${gender}.
+  Patient's Description: "${originalInput}".
+
+  CRITICAL INSTRUCTIONS:
+  1. LANGUAGE MATCHING: You MUST reply in the EXACT SAME language the patient used. If they typed in English, reply in English. If Hinglish (Hindi in English letters), reply in Hinglish. If they typed in Hindi script, reply in Hindi script.
+  2. NO MARKDOWN: Do NOT use markdown formatting (like **, ##, --). 
+  3. FORMAT: You must output RAW HTML tags ONLY, following the exact structure below.
+  4. TONE: Be warm, reassuring, and highly detailed like a real Indian doctor consultation.
+
+  You MUST use this exact HTML structure for your output:
+  
+  <div style="background: #e7f5ff; border-left: 4px solid #0b3d91; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+    <strong>🩺 ${doctorsText}'s Reassurance:</strong><br>
+    [Write your warm, reassuring opening paragraph here]
+  </div>
+
+  <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+    <h4 style="color: #1b5e20; margin-bottom: 8px;">💚 Likely Issue & Supportive Care</h4>
+    <ul style="margin-left: 20px; line-height: 1.6;">
+      <li>🍲 <strong>Food to Eat:</strong> [Suggest easily digestible foods, AND specifically recommend fresh fruits and juices]</li>
+      <li>🚫 <strong>Food to Avoid:</strong> [Suggest foods to avoid]</li>
+      <li>🌿 <strong>Natural Herbs/Remedies:</strong> [Suggest herbs]</li>
+      <li>💧 <strong>Care & Temperature:</strong> [Suggest care steps]</li>
+    </ul>
+  </div>
+
+  <h3 style="color: #0077b6; margin-top: 20px;">💊 Suggested Medicines</h3>
+  <ul style="margin-left: 20px; line-height: 1.8; margin-bottom: 15px;">
+    <li><strong>[Medicine 1 Name (Tablet/Syrup/Injection)]:</strong> [Dosage] - [When to take, e.g., after food]</li>
+    <li><strong>[Medicine 2 Name]:</strong> [Dosage] - [When to take]</li>
+  </ul>
+
+  <div style="background: #fff3cd; border-left: 4px solid #ffb703; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+    <h4 style="color: #856404; margin-bottom: 8px;">🛒 Optional Recovery Boosters (Supplements & Diet)</h4>
+        <p style="font-size: 14px; color: #856404;">[Suggest 1-2 supplements like Multivitamins, Iron tonics, Protein powders like Ensure/Protinex, or fruit juices. Explain why they help in recovery]</p>
+  </div>
+
+  [IF SEVERE: Add this block: <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin-bottom: 15px;"><strong>🩻 Diagnostic Test Needed:</strong> [Suggest X-ray/USG/MRI and why]</div>]
+
+  <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin-top: 15px;">
+    <strong>⚠️ Strict Warning:</strong> [Write the warning, e.g., "Agar 2 din me aaram na mile, toh turant doctor se milein."]
+  </div>`;
 
   let attempts = 0;
   const maxAttempts = GROQ_API_KEYS.length;
@@ -411,13 +444,15 @@ async function fetchGroqResponse(originalInput, cacheKey) {
           model: GROQ_MODEL,
           messages: [{ role: "user", content: systemPrompt }],
           temperature: 0.5,
-          max_tokens: 500
+          max_tokens: 1500 // INCREASED TOKEN LIMIT FOR DETAILED RESPONSES
         })
       });
 
       if (response.ok) {
         currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
         const data = await response.json();
+        
+        // The AI is now returning raw HTML. We just inject it.
         const aiReply = data.choices[0].message.content;
 
         const aiHTML = `
@@ -430,10 +465,8 @@ async function fetchGroqResponse(originalInput, cacheKey) {
               <span>${new Date().toLocaleString()}</span>
             </div>
             <div class="report-body">
-              <div style="background: #e7f5ff; padding: 15px; border-radius: 6px; font-size: 15px; line-height: 1.6; color: #0b3d91;">
-                ${aiReply.replace(/\n/g, '<br>')}
-              </div>
-              <p style="margin-top: 20px; font-size: 13px; color: #d90429; font-weight: bold;">
+              ${aiReply}
+              <p style="margin-top: 20px; font-size: 13px; color: #d90429; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 10px;">
                 ⚠️ DISCLAIMER: This is AI-generated advice. Always consult a real doctor before taking any medicine.
               </p>
             </div>
@@ -458,16 +491,14 @@ async function fetchGroqResponse(originalInput, cacheKey) {
     }
   }
 
-  // --- API LIMITS EXHAUSTED OR OFFLINE: FALLBACK TO LOCAL DATABASE ---
+  // Fallback if API fails
   console.log("All API keys exhausted or offline. Falling back to Local Database...");
-  
   if (lastAnalysisContext.detectedMeds.length > 0) {
     buildLocalReport();
   } else {
     generateOfflineFallback(originalInput, doctorsText);
   }
 }
-
 // --- BUILD LOCAL REPORT (FALLBACK) ---
 function buildLocalReport() {
   const c = lastAnalysisContext; // Shortcut
