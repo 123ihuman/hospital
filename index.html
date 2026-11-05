@@ -229,6 +229,16 @@
 <script src="medicines.js"></script>
 
 <script>
+// --- GROQ API CONFIGURATION (PASTE YOUR KEYS HERE) ---
+const GROQ_API_KEYS = [
+  "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", 
+  "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", 
+  "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",
+  "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"
+];
+const GROQ_MODEL = "llama3-8b-8192"; // Fast and free on Groq
+let currentKeyIndex = 0;
+
 // --- TAB SWITCHING LOGIC ---
 function switchTab(tabId) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -259,7 +269,7 @@ function analyzeSymptoms() {
   if (!cleanInput || cleanInput.trim() === "") { alert("Please type at least one symptom."); return; }
   if (isNaN(age) || age < 1) { alert("Please enter a valid age."); return; }
 
-  // --- 1. NEGATION HANDLER (Ignores "bukhar nahi", "no fever", etc.) ---
+  // --- 1. NEGATION HANDLER ---
   const symptomKeywords = ["bukhar", "fever", "khansi", "cough", "sardi", "cold", "jhukham", "pain", "dard", "ulti", "vomiting", "kamzori", "weakness", "gas", "acidity", "teeth", "dant", "eye", "aankh", "ear", "kaan"];
   const negations = ["nahi", "not", "no", "nope", "without", "bina", "kabhi nahi"];
 
@@ -275,54 +285,20 @@ function analyzeSymptoms() {
 
   // --- 2. MULTI-LANGUAGE DICTIONARY ---
   const langMap = {
-    // Hindi/Hinglish
-    "bukhar": "fever", "बुखार": "fever", "tej bukhar": "fever",
-    "khansi": "cough", "खांसी": "cough", "कफ": "cough",
-    "sardi": "cold", "सर्दी": "cold", "jhukham": "cold", "जुकाम": "cold", "xeek": "cold", "chheenk": "cold",
-    "dard": "pain", "दर्द": "pain", "sareer dard": "body pain", "body dard": "body pain",
-    "pet dard": "stomach ache", "पेट दर्द": "stomach ache",
-    "sir dard": "headache", "सिर दर्द": "headache",
-    "dant dard": "toothache", "दांत दर्द": "toothache", "daant": "toothache", "दांत": "toothache", "dant": "toothache",
-    "kaan dard": "ear pain", "कान दर्द": "ear pain", "kaan": "ear pain",
-    "aankh": "eye pain", "आंख": "eye pain", "aankh laal": "eye redness", "आंख लाल": "eye redness",
-    "ulti": "vomiting", "उल्टी": "vomiting", "matli": "nausea",
-    "kamzori": "weakness", "कमजोरी": "weakness", "thakan": "fatigue",
-    "dast": "diarrhea", "दस्त": "diarrhea", "loose motion": "diarrhea",
-    "periods": "periods issues", "पीरियड्स": "periods issues", "masik dharm": "periods issues",
-    "sujan": "swelling", "सूजन": "swelling", "chot": "injury", "चोट": "injury", "gir gya": "injury",
-    "khoon": "injury", "खून": "injury", "blood": "injury", "jalna": "burn", "जलना": "burn",
-    "bhuk nhi": "no hunger", "khana khane ka man nhi": "no hunger", "भूख नहीं": "no hunger",
-    "bal": "hair loss", "baal": "hair loss", "बाल": "hair loss", "hair": "hair loss",
-    // Kannada
-    "jwara": "fever", "kemmu": "cough", "sheeta": "cold", "novu": "pain", "hotte": "stomach ache", "hallu": "toothache", "kannu": "eye pain", "kivi": "ear pain",
-    // Tamil
-    "kaichal": "fever", "irumal": "cough", "sali": "cold", "vali": "pain", "vayiru": "stomach ache", "pal": "toothache", "kan": "eye pain", "kaadhu": "ear pain"
+    "bukhar": "fever", "बुखार": "fever", "tej bukhar": "fever", "khansi": "cough", "खांसी": "cough", "कफ": "cough", "sardi": "cold", "सर्दी": "cold", "jhukham": "cold", "जुकाम": "cold", "xeek": "cold", "chheenk": "cold", "dard": "pain", "दर्द": "pain", "sareer dard": "body pain", "body dard": "body pain", "pet dard": "stomach ache", "पेट दर्द": "stomach ache", "sir dard": "headache", "सिर दर्द": "headache", "dant dard": "toothache", "दांत दर्द": "toothache", "daant": "toothache", "दांत": "toothache", "dant": "toothache", "kaan dard": "ear pain", "कान दर्द": "ear pain", "kaan": "ear pain", "aankh": "eye pain", "आंख": "eye pain", "aankh laal": "eye redness", "आंख लाल": "eye redness", "ulti": "vomiting", "उल्टी": "vomiting", "matli": "nausea", "kamzori": "weakness", "कमजोरी": "weakness", "thakan": "fatigue", "dast": "diarrhea", "दस्त": "diarrhea", "loose motion": "diarrhea", "periods": "periods issues", "पीरियड्स": "periods issues", "masik dharm": "periods issues", "sujan": "swelling", "सूजन": "swelling", "chot": "injury", "चोट": "injury", "gir gya": "injury", "khoon": "injury", "खून": "injury", "blood": "injury", "jalna": "burn", "जलना": "burn", "bhuk nhi": "no hunger", "khana khane ka man nhi": "no hunger", "भूख नहीं": "no hunger", "bal": "hair loss", "baal": "hair loss", "बाल": "hair loss", "hair": "hair loss"
   };
 
   for (let key in langMap) {
-    if (rawSymptoms.includes(key)) {
-      rawSymptoms += " " + langMap[key];
-    }
+    if (rawSymptoms.includes(key)) { rawSymptoms += " " + langMap[key]; }
   }
 
   // --- 3. EXPANDED SYNONYM MAP ---
   const synonymMap = {
-    "temperature": "fever", "hot body": "fever", "body ache": "body pain", "muscle pain": "body pain", 
-    "migraine": "headache", "swollen": "swelling", "wound": "injury", "cut": "injury", "sprain": "injury", "fell down": "injury", "bleding": "injury",
-    "teeth": "toothache", "tooth": "toothache", "dental": "toothache", "gum": "toothache", "sensitive teeth": "toothache", "jalan": "toothache",
-    "eye": "eye pain", "eyes": "eye pain", "red eye": "eye redness", "watery eyes": "eye redness", "aankh se pani": "eye redness",
-    "ear": "ear pain", "ears": "ear pain", "ear ache": "ear pain",
-    "stomach pain": "stomach ache", "belly pain": "stomach ache", "tummy": "stomach ache", "cramps": "stomach cramps", "gas": "acidity",
-    "loose motions": "diarrhea", "throwing up": "vomiting", "puking": "vomiting", "nausea": "vomiting",
-    "sneezing": "cold", "runny nose": "cold", "blocked nose": "cold", "sore throat": "throat infection", "throat pain": "throat infection", "coughing": "cough",
-    "weak": "weakness", "tired": "fatigue", "no energy": "weakness", "dizzy": "dizziness",
-    "period": "periods issues", "menstruation": "periods issues", "menses": "periods issues", "period pain": "periods issues", "irregular periods": "periods issues", "jaldi aate": "periods issues"
+    "temperature": "fever", "hot body": "fever", "body ache": "body pain", "muscle pain": "body pain", "migraine": "headache", "swollen": "swelling", "wound": "injury", "cut": "injury", "sprain": "injury", "fell down": "injury", "bleding": "injury", "teeth": "toothache", "tooth": "toothache", "dental": "toothache", "gum": "toothache", "sensitive teeth": "toothache", "jalan": "toothache", "eye": "eye pain", "eyes": "eye pain", "red eye": "eye redness", "watery eyes": "eye redness", "aankh se pani": "eye redness", "ear": "ear pain", "ears": "ear pain", "ear ache": "ear pain", "stomach pain": "stomach ache", "belly pain": "stomach ache", "tummy": "stomach ache", "cramps": "stomach cramps", "gas": "acidity", "loose motions": "diarrhea", "throwing up": "vomiting", "puking": "vomiting", "nausea": "vomiting", "sneezing": "cold", "runny nose": "cold", "blocked nose": "cold", "sore throat": "throat infection", "throat pain": "throat infection", "coughing": "cough", "weak": "weakness", "tired": "fatigue", "no energy": "weakness", "dizzy": "dizziness", "period": "periods issues", "menstruation": "periods issues", "menses": "periods issues", "period pain": "periods issues", "irregular periods": "periods issues", "jaldi aate": "periods issues"
   };
 
   for (let key in synonymMap) {
-    if (rawSymptoms.includes(key)) {
-      rawSymptoms += " " + synonymMap[key]; 
-    }
+    if (rawSymptoms.includes(key)) { rawSymptoms += " " + synonymMap[key]; }
   }
 
   let isChild = age < 12;
@@ -346,55 +322,40 @@ function analyzeSymptoms() {
 
   // --- 4. EMERGENCY & FIRST AID ENGINE ---
   let firstAidHTML = "";
-  
-  // Check if the user described an accident, injury, burn, or severe trauma
   if (rawSymptoms.includes("injury") || rawSymptoms.includes("burn") || rawSymptoms.includes("accident") || rawSymptoms.includes("fracture")) {
-    
     let aidSteps = "";
-    
     if (rawSymptoms.includes("burn")) {
-      aidSteps = `
-        <li>Cool the burn under cool running water for 10-20 minutes.</li>
-        <li>Do NOT apply ice, butter, or toothpaste.</li>
-        <li>Cover loosely with a clean, sterile bandage or cloth.</li>
-      `;
+      aidSteps = `<li>Cool the burn under cool running water for 10-20 minutes.</li><li>Do NOT apply ice, butter, or toothpaste.</li><li>Cover loosely with a clean, sterile bandage or cloth.</li>`;
     } else if (rawSymptoms.includes("injury") && (rawSymptoms.includes("blood") || rawSymptoms.includes("khoon"))) {
-      aidSteps = `
-        <li><strong>Stop Bleeding:</strong> Apply firm, direct pressure on the wound with a clean cloth.</li>
-        <li>Do NOT remove the cloth if it gets soaked; add another layer on top.</li>
-        <li>Elevate the injured area above the heart if possible.</li>
-        <li>Wash minor cuts with clean water and apply an antiseptic (Betadine).</li>
-      `;
+      aidSteps = `<li><strong>Stop Bleeding:</strong> Apply firm, direct pressure on the wound with a clean cloth.</li><li>Do NOT remove the cloth if it gets soaked; add another layer on top.</li><li>Elevate the injured area above the heart if possible.</li><li>Wash minor cuts with clean water and apply an antiseptic (Betadine).</li>`;
     } else {
-      aidSteps = `
-        <li><strong>R.I.C.E Method:</strong> <strong>R</strong>est the area, <strong>I</strong>ce it (15 mins), <strong>C</strong>ompress with a crepe bandage, <strong>E</strong>levate it.</li>
-        <li>Do NOT try to forcefully move a broken or severely sprained joint.</li>
-        <li>Immobilize the area using a splint or cloth if you must move.</li>
-      `;
+      aidSteps = `<li><strong>R.I.C.E Method:</strong> <strong>R</strong>est the area, <strong>I</strong>ce it (15 mins), <strong>C</strong>ompress with a crepe bandage, <strong>E</strong>levate it.</li><li>Do NOT try to forcefully move a broken or severely sprained joint.</li><li>Immobilize the area using a splint or cloth if you must move.</li>`;
     }
-
     firstAidHTML = `
       <div style="background: #ffebee; border: 2px solid #d90429; padding: 20px; margin: 15px 0; border-radius: 8px; color: #b71c1c;">
         <h3 style="margin-top: 0; color: #d90429;">🚨 EMERGENCY FIRST AID (DO THIS IMMEDIATELY)</h3>
         <p>Based on your description, this is a physical injury. If you are in a remote area or waiting for a doctor, follow these steps:</p>
-        <ul style="margin-left: 20px; font-weight: bold; line-height: 1.8;">
-          ${aidSteps}
-        </ul>
+        <ul style="margin-left: 20px; font-weight: bold; line-height: 1.8;">${aidSteps}</ul>
         <p style="margin-top: 15px; font-size: 13px;"><em>⚠️ If bleeding does not stop after 10 minutes of firm pressure, or if the bone is visible, it is a life-threatening emergency. Get to a hospital immediately.</em></p>
-      </div>
-    `;
+      </div>`;
   }
 
-  // If NO medicines AND NO first aid found, tell the user
+  // --- 5. HYBRID AI LOGIC: LOCAL DB -> CACHE -> GROQ API ---
   if (detectedMeds.length === 0 && firstAidHTML === "") {
-    alert("Symptom not found in database. Try simpler words like 'fever', 'stomach ache', 'weakness'.");
+    const cachedResponse = localStorage.getItem('ai_cache_' + cleanInput);
+    if (cachedResponse) {
+      document.getElementById('reportContent').innerHTML = cachedResponse;
+      switchTab('report');
+      return;
+    }
+    fetchGroqResponse(originalInput, cleanInput);
     return;
   }
 
+  // --- 6. BUILD LOCAL REPORT ---
   let detectedSymptoms = Array.from(matchedSymptoms);
   let reportHTML = "";
 
-  // --- 5. SUPPORTIVE CARE & DIET DATABASE ---
   const careAdvice = {
     "fever": { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", temp: "Use a damp cloth on forehead if very hot. Keep room ventilated.", how: "Take medicines with normal room temperature water after food." },
     "vomiting": { eat: "BRAT diet (Banana, Rice, Applesauce, Toast), plain curd, ORS.", avoid: "Spicy, oily, or heavy dairy foods.", herbs: "Ginger tea, mint leaves, lemon water.", temp: "Sip fluids slowly and frequently.", how: "Take anti-vomiting tablet 30 mins before eating with a sip of water." },
@@ -426,8 +387,7 @@ function analyzeSymptoms() {
           <li>🌡️ <strong>Care & Temperature:</strong> ${advice.temp}</li>
           <li>💧 <strong>How to take medicine:</strong> ${advice.how}</li>
         </ul>
-      </div>
-    `;
+      </div>`;
   });
 
   reportHTML += `
@@ -439,40 +399,22 @@ function analyzeSymptoms() {
       <div class="report-body">
         <p><strong>Patient:</strong> ${name} | <strong>Age:</strong> ${age} | <strong>Gender:</strong> ${gender}</p>
         <p><strong>Reported Issues:</strong> ${detectedSymptoms.join(", ")} (Duration: ${duration})</p>
-        
-        <!-- EMERGENCY FIRST AID INJECTED HERE -->
         ${firstAidHTML}
-        
-        <!-- PARAGRAPH SUMMARY -->
         <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; line-height: 1.5; color: #0b3d91;">
-          <strong>🤖 AI Doctor's Reassurance:</strong><br>
-          ${summaryParagraph}
+          <strong>🤖 AI Doctor's Reassurance:</strong><br>${summaryParagraph}
         </div>
-
-        <!-- SUPPORTIVE CARE BLOCK -->
         ${careHTML}
+        <hr style="margin:15px 0; border-top:1px dashed #ccc;">`;
 
-        <hr style="margin:15px 0; border-top:1px dashed #ccc;">
-  `;
+  if (isChild) reportHTML += `<div class="warning-card">🚨 <strong>PEDIATRIC WARNING:</strong> For children under 12, DO NOT give adult cough/cold syrups. Consult a pediatrician.</div>`;
+  if (isSenior) reportHTML += `<div class="warning-card">👴 <strong>SENIOR CITIZEN NOTE:</strong> Lower doses may be needed.</div>`;
+  if (hasFever && rawSymptoms.includes("cough")) reportHTML += `<div class="warning-card">⚠️ <strong>COMBINATION ALERT:</strong> DO NOT take an extra Paracetamol tablet if you are taking cough syrup.</div>`;
 
-  if (isChild) {
-    reportHTML += `<div class="warning-card">🚨 <strong>PEDIATRIC WARNING:</strong> For children under 12, DO NOT give adult cough/cold syrups. Consult a pediatrician.</div>`;
-  }
-  if (isSenior) {
-    reportHTML += `<div class="warning-card">👴 <strong>SENIOR CITIZEN NOTE:</strong> Lower doses may be needed.</div>`;
-  }
-  if (hasFever && rawSymptoms.includes("cough")) {
-    reportHTML += `<div class="warning-card">⚠️ <strong>COMBINATION ALERT:</strong> DO NOT take an extra Paracetamol tablet if you are taking cough syrup.</div>`;
-  }
-
-  // Render the detected medicines dynamically
   detectedMeds.forEach(med => {
     let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺' }[med.form] || '💊';
     let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
-    
     let treats = med.symptoms.filter(s => detectedSymptoms.includes(s));
     let treatsText = treats.length > 0 ? `<span style="font-size:12px; color:#0077b6; font-weight:bold;">(For: ${treats.join(', ')})</span>` : '';
-
     let dosageInfo = med.dosage_adult;
     let extraWarning = "";
 
@@ -498,8 +440,7 @@ function analyzeSymptoms() {
         ${extraWarning}
         <p style="margin-top:10px;"><strong>🌿 Natural Aid:</strong> ${med.natural_aid}</p>
         <p style="font-size:13px; color:#d90429; margin-top:5px;"><strong>⚠️ Warning:</strong> ${med.warning}</p>
-      </div>
-    `;
+      </div>`;
   });
 
   reportHTML += `
@@ -514,13 +455,158 @@ function analyzeSymptoms() {
         </ul>
         <p style="font-size:12px; color:#666; margin-top:10px;"><em>Doctor's Signature: ______________________</em></p>
       </div>
-      </div></div>
-  `;
+      </div></div>`;
 
   document.getElementById('reportContent').innerHTML = reportHTML;
   switchTab('report');
 }
+-
+// --- GROQ API FETCH WITH DOCTOR PERSONA & OFFLINE FALLBACK ---
+async function fetchGroqResponse(originalInput, cacheKey) {
+  document.getElementById('reportContent').innerHTML = `
+    <div style="text-align: center; padding: 50px;">
+      <h3 style="color: var(--primary);">🩺 A doctor is reviewing your symptoms...</h3>
+      <p>Please wait a moment.</p>
+    </div>`;
+  switchTab('report');
 
+  // 1. Randomly Assign a Doctor Persona
+  const doctor = Math.random() > 0.5 
+    ? { name: "Dr. Neha", icon: "👩‍⚕️" } 
+    : { name: "Dr. Kartik", icon: "👨‍⚕️" };
+
+  const systemPrompt = `You are ${doctor.name}, a kind, supportive, and experienced Indian doctor. 
+  A patient has described their symptoms in English or Hinglish: "${originalInput}". 
+  Respond in simple, supportive Hinglish (Hindi written in English letters). 
+  Do NOT panic the patient. Structure your reply as a friendly doctor:
+  1. A reassuring opening paragraph (e.g., "${doctor.name} here. Aap ghabraiye mat...").
+  2. The likely issue and immediate home care (herbs, food, rest).
+  3. 2-3 common generic medicines with basic dosage (e.g., "Dolo 650, 1 tablet after food").
+  4. A strict warning: "Agar 2 din me aaram na mile, toh turant doctor se milein."
+  Keep the tone warm, comforting, and professional.`;
+
+  let attempts = 0;
+  const maxAttempts = GROQ_API_KEYS.length;
+
+  while (attempts < maxAttempts) {
+    const currentKey = GROQ_API_KEYS[currentKeyIndex];
+    
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [{ role: "user", content: systemPrompt }],
+          temperature: 0.5,
+          max_tokens: 500
+        })
+      });
+
+      if (response.ok) {
+        currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
+        
+        const data = await response.json();
+        const aiReply = data.choices[0].message.content;
+
+        const aiHTML = `
+          <div class="report-card" style="border: 2px solid #00b4d8;">
+            <div class="report-header" style="background: #00b4d8;">
+              <h2 style="color:white; border:none; margin:0; padding:0;">${doctor.icon} ${doctor.name}'s Advice</h2>
+            </div>
+            <div class="report-body">
+              <div style="background: #e7f5ff; padding: 15px; border-radius: 6px; font-size: 15px; line-height: 1.6; color: #0b3d91;">
+                ${aiReply.replace(/\n/g, '<br>')}
+              </div>
+              <p style="margin-top: 20px; font-size: 13px; color: #d90429; font-weight: bold;">
+                ⚠️ DISCLAIMER: This is AI-generated advice. Always consult a real doctor before taking any medicine.
+              </p>
+            </div>
+          </div>`;
+
+        localStorage.setItem('ai_cache_' + cacheKey, aiHTML);
+        document.getElementById('reportContent').innerHTML = aiHTML;
+        switchTab('report');
+        return; // Success, exit function
+      } 
+      
+      else if (response.status === 429) {
+        console.warn(`Key ${currentKeyIndex} hit rate limit. Switching to next key...`);
+        currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 500)); 
+      } 
+      
+      else {
+        throw new Error(`API Error: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      if (error.message.includes("Failed to fetch")) {
+        break; // No internet, break immediately to offline fallback
+      }
+      attempts++;
+    }
+  }
+
+  // 2. THE UNBREAKABLE OFFLINE FALLBACK
+  // If all keys fail or there is no internet, we NEVER deny help.
+  console.log("All API keys exhausted or offline. Generating Offline Triage Report...");
+  generateOfflineFallback(originalInput, doctor);
+}
+
+// --- OFFLINE EMERGENCY TRIAGE FALLBACK ---
+function generateOfflineFallback(originalInput, doctor) {
+  // We reuse the local parser logic to see if we can grab anything
+  let rawSymptoms = originalInput.toLowerCase();
+  
+  let fallbackHTML = `
+    <div class="report-card" style="border: 2px solid var(--warning);">
+      <div class="report-header" style="background: var(--warning); color: #333;">
+        <h2 style="color:#333; border:none; margin:0; padding:0;">${doctor.icon} ${doctor.name}'s Offline Triage</h2>
+        <span>Offline Mode</span>
+      </div>
+      <div class="report-body">
+        
+        <div style="background: #fff3cd; border-left: 4px solid var(--warning); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+          <strong>⚠️ Internet/API Unavailable:</strong> Our AI doctor cannot be reached right now. However, we will <strong>never leave you without help</strong>. 
+          Please follow the general supportive care below while trying to connect to a doctor.
+        </div>
+
+        <p><strong>Your Description:</strong> "${originalInput}"</p>
+        
+        <h3 style="color: var(--primary); margin-top: 20px;">🩺 General Supportive Care (Safe for most conditions)</h3>
+        <ul style="margin-left: 20px; line-height: 1.8;">
+          <li>💧 <strong>Hydration:</strong> Drink plenty of clean water, ORS, or coconut water.</li>
+          <li>🍲 <strong>Food:</strong> Eat light, easily digestible foods like Khichdi, bananas, or toast. Avoid spicy or oily food.</li>
+          <li>🛏️ <strong>Rest:</strong> Lie down in a quiet, well-ventilated room.</li>
+          <li>🌿 <strong>Natural Aid:</strong> For mild pain or fever, you can use a damp cloth on the forehead or a warm compress on sore muscles.</li>
+        </ul>
+
+        <h3 style="color: var(--danger); margin-top: 20px;">🚨 When to seek Emergency Help</h3>
+        <p>If you experience any of the following, go to the nearest hospital immediately:</p>
+        <ul style="margin-left: 20px; color: var(--danger); font-weight: bold; line-height: 1.8;">
+          <li>Chest pain or difficulty breathing.</li>
+          <li>Severe, unstoppable bleeding.</li>
+          <li>Loss of consciousness or confusion.</li>
+          <li>Stiff neck with high fever.</li>
+        </ul>
+
+        <hr style="margin:20px 0;">
+        
+        <p style="font-size: 13px; color: #666; text-align: center;">
+          <em>We apologize for the inconvenience. Please try reconnecting your internet to get a personalized prescription from ${doctor.name}.</em>
+        </p>
+        <button onclick="switchTab('input')" style="margin-top: 15px; background: var(--primary);">Go Back & Try Again</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('reportContent').innerHTML = fallbackHTML;
+}
 // --- DYNAMIC SEARCH & FILTER LOGIC ---
 function renderMedicineList() {
   const query = document.getElementById('searchMed').value.toLowerCase();
@@ -579,6 +665,5 @@ window.onload = function() {
   }
 };
 </script>
-
 </body>
 </html>
