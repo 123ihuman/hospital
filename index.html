@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MediGuide Pro - Advanced Symptom & Medicine Panel</title>
+<title>MediGuide Pro - Advanced Medical Panel</title>
 <style>
   :root {
     --primary: #0b3d91;
@@ -19,26 +19,48 @@
   * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
   body { background: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: 50px; }
   
-  /* Navigation */
+  /* Navigation & Hamburger */
   .navbar {
     background: var(--primary); color: white; padding: 15px 20px;
     position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
+  .nav-left { display: flex; align-items: center; gap: 15px; }
+  .hamburger { font-size: 24px; cursor: pointer; user-select: none; }
   .navbar h1 { font-size: 20px; letter-spacing: 0.5px; }
   .nav-links { display: flex; gap: 15px; font-size: 14px; font-weight: 600; align-items: center; }
   .nav-links span { cursor: pointer; opacity: 0.7; transition: 0.3s; }
   .nav-links span:hover, .nav-links span.active { opacity: 1; border-bottom: 2px solid var(--accent); }
 
-  /* Container */
+  /* Sidebar Styles */
+  .sidebar {
+    height: 100%; width: 0; position: fixed; top: 0; left: 0;
+    background-color: var(--primary); overflow-x: hidden; transition: 0.4s;
+    padding-top: 60px; z-index: 1000; color: white; box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+  }
+  .sidebar a {
+    padding: 15px 25px; text-decoration: none; font-size: 16px; color: white;
+    display: block; transition: 0.2s; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar a:hover { background-color: var(--secondary); padding-left: 30px; }
+  .sidebar .closebtn { position: absolute; top: 10px; right: 20px; font-size: 36px; cursor: pointer; }
+
+  /* Tool Modal Styles */
+  .tool-modal {
+    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 2000; width: 90%; max-width: 400px;
+  }
+  .tool-modal h3 { color: var(--primary); margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+  .tool-modal input, .tool-modal textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
+  .close-modal { background: var(--danger); color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
+
+  /* Container & Panels */
   .container { max-width: 850px; margin: 20px auto; padding: 0 15px; }
-  
-  /* Cards & Panels */
   .panel {
     background: var(--card); border-radius: 12px; padding: 25px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px;
-    border-left: 5px solid var(--secondary);
-    display: none; 
+    border-left: 5px solid var(--secondary); display: none; 
   }
   .panel.active { display: block; animation: fadeIn 0.4s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -48,47 +70,38 @@
   
   /* Form Elements */
   label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; color: var(--primary); }
-  input, select, textarea {
-    width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px;
-    font-size: 15px; margin-bottom: 15px; background: #f9f9f9; transition: 0.3s;
-  }
-  input:focus, textarea:focus { border-color: var(--accent); outline: none; background: #fff; box-shadow: 0 0 5px rgba(0,180,216,0.3); }
-  textarea { resize: vertical; min-height: 80px; }
+  input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; margin-bottom: 15px; background: #f9f9f9; }
+  input:focus, textarea:focus { border-color: var(--accent); outline: none; background: #fff; }
   .row { display: flex; gap: 20px; flex-wrap: wrap; }
   .row > div { flex: 1; min-width: 150px; }
 
   /* Buttons */
-  button {
-    background: var(--primary); color: white; border: none; padding: 14px 20px;
-    border-radius: 6px; font-size: 16px; font-weight: 700; cursor: pointer;
-    width: 100%; transition: 0.3s; margin-top: 10px;
-    display: flex; justify-content: center; align-items: center; gap: 10px;
+  /* Calculator specific buttons */
+  #tool-calculator button {
+    padding: 15px 0;
+    font-size: 20px;
+    border-radius: 50px;
+    background: #e0e0e0;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
-  button:hover { background: var(--secondary); transform: translateY(-2px); }
-  .btn-print { background: var(--success); margin-top: 15px; }
-
-  /* Informational Text */
-  .info-card { background: #e7f5ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; border-left: 4px solid var(--secondary); }
-  .warning-card { background: #f8d7da; color: #721c24; border-left: 4px solid var(--danger); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; }
+  #tool-calculator button:active {
+    background: #ccc;
+    transform: scale(0.95);
+  }
+  button { background: var(--primary); color: white; border: none; padding: 14px 20px; border-radius: 6px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.3s; display: flex; justify-content: center; gap: 10px; }
+  button:hover { background: var(--secondary); }
+  .btn-print { background: var(--success); }
 
   /* Report Card Styling */
   .report-section { display: none; margin-top: 20px; }
-  .report-card { border: 2px solid var(--primary); border-radius: 8px; overflow: hidden; }
+  .report-card { border: 2px solid var(--primary); border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
   .report-header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; }
   .report-body { padding: 20px; background: #fff; }
   .price-tag { font-weight: bold; color: var(--success); }
   .dosage-line { background: #f1f1f1; padding: 8px; border-radius: 4px; margin: 5px 0; font-size: 13px; font-family: monospace; }
   
-  /* Footer */
-  footer { text-align: center; font-size: 12px; color: #777; margin-top: 30px; }
-  
-  @media print {
-    .navbar, .nav-links, button, .disclaimer-box, #panel-input, .translate-strip { display: none !important; }
-    #panel-report { display: block !important; box-shadow: none; border: none; }
-    body { background: white; padding: 0; }
-  }
-  
-  /* Google Translate Strip Styles */
+  /* Google Translate Strip */
   .translate-strip { background: #e0e0e0; padding: 5px 20px; display: flex; justify-content: flex-end; align-items: center; font-size: 12px; border-bottom: 1px solid #ccc; }
   .goog-te-gadget { font-family: 'Segoe UI', sans-serif !important; color: transparent !important; }
   .goog-te-gadget .goog-te-combo { padding: 2px 5px; border-radius: 4px; border: 1px solid #999; font-size: 12px; color: #333; }
@@ -99,640 +112,545 @@
 </head>
 <body>
 
+<!-- SIDEBAR MENU -->
+<div id="mySidebar" class="sidebar">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+  <div style="padding: 20px; text-align: center;">
+    <h2 style="color: white; border: none; margin-bottom: 5px;">🩺 MediTools</h2>
+    <p style="font-size: 12px; opacity: 0.8;">Advanced Medical Utilities</p>
+  </div>
+  <a onclick="openTool('clock')">⏰ Real-time Clock & Alarm</a>
+  <a onclick="openTool('notes')">📝 Patient Notes</a>
+  <a onclick="openTool('calculator')">💰 Medicine Price Calculator</a>
+  <a onclick="openTool('appointments')">📅 Doctor Appointments</a>
+</div>
+
+<!-- TOOLS MODALS -->
+<div id="tool-clock" class="tool-modal">
+  <h3>⏰ Time & Medicine Alarm</h3>
+  <div style="font-size: 32px; text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 20px;" id="live-clock">00:00:00</div>
+  <label>Set Medicine Reminder Time</label>
+  <input type="time" id="alarm-time">
+  <button onclick="setAlarm()" style="margin-bottom: 15px;">Set Alarm</button>
+  <p style="font-size: 13px; color: #666; text-align: center;">Keep this tab open to hear the alarm.</p>
+  <button class="close-modal" onclick="closeTool('clock')">Close</button>
+</div>
+
+<div id="tool-notes" class="tool-modal">
+  <h3>📝 Patient Notes</h3>
+  <textarea id="patient-notes" rows="5" placeholder="Type your medical notes here..."></textarea>
+  <button onclick="saveNotes()" style="margin-bottom: 15px; background: var(--success);">Save Notes</button>
+  <button class="close-modal" onclick="closeTool('notes')">Close</button>
+</div>
+
+<div id="tool-calculator" class="tool-modal" style="max-width: 320px;">
+  <h3 style="text-align: center;">💰 Calculator</h3>
+  
+  <!-- Calculator Display Screen -->
+  <div id="calc-display" style="background: #f1f1f1; border: 1px solid #ccc; border-radius: 8px; padding: 15px; font-size: 28px; text-align: right; margin-bottom: 15px; font-weight: bold; overflow-x: auto; white-space: nowrap;">
+    0
+  </div>
+
+  <!-- Calculator Buttons Grid -->
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+    <button onclick="calcClear()" style="background: #d90429; color: white;">C</button>
+    <button onclick="calcBackspace()" style="background: #6c757d; color: white;">←</button>
+    <button onclick="setCalcOperator('/')" style="background: #ffb703; color: #333;">÷</button>
+    <button onclick="setCalcOperator('*')" style="background: #ffb703; color: #333;">×</button>
+
+    <button onclick="calcNumber('7')">7</button>
+    <button onclick="calcNumber('8')">8</button>
+    <button onclick="calcNumber('9')">9</button>
+    <button onclick="setCalcOperator('-')" style="background: #ffb703; color: #333;">-</button>
+
+    <button onclick="calcNumber('4')">4</button>
+    <button onclick="calcNumber('5')">5</button>
+    <button onclick="calcNumber('6')">6</button>
+    <button onclick="setCalcOperator('+')" style="background: #ffb703; color: #333;">+</button>
+
+    <button onclick="calcNumber('1')">1</button>
+    <button onclick="calcNumber('2')">2</button>
+    <button onclick="calcNumber('3')">3</button>
+    <button onclick="calcEquals()" style="background: #2a9d8f; color: white; grid-row: span 2;">=</button>
+
+    <button onclick="calcNumber('0')" style="grid-column: span 2;">0</button>
+    <button onclick="calcNumber('.')">.</button>
+  </div>
+  
+  <button class="close-modal" onclick="closeTool('calculator')" style="margin-top: 15px;">Close</button>
+</div>
+
+<div id="tool-appointments" class="tool-modal">
+  <h3>📅 Doctor Appointments</h3>
+  <input type="date" id="appt-date">
+  <input type="text" id="appt-doc" placeholder="Doctor Name / Clinic">
+  <button onclick="saveAppt()" style="margin-bottom: 15px;">Save Appointment</button>
+  <div id="appt-list" style="font-size: 14px; margin-bottom: 15px;"></div>
+  <button class="close-modal" onclick="closeTool('appointments')">Close</button>
+</div>
+
+
 <!-- Google Translate Strip -->
 <div class="translate-strip">
   <span style="margin-right: 10px; color: #333; font-weight: bold;">🌐 Language:</span>
   <div id="google_translate_element"></div>
 </div>
 
-<script type="text/javascript">
-  function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-      pageLanguage: 'en', 
-      includedLanguages: 'en,hi,kn,bho,ta,gu,as,te,mr,bn,pa,ml,ur,fr,es,ru,zh-CN,ja',
-      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-    }, 'google_translate_element');
-  }
-</script>
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
 <div class="navbar">
-  <h1>🩺 MediGuide Pro</h1>
+  <div class="nav-left">
+    <span class="hamburger" onclick="openNav()">☰</span>
+    <h1>🩺 MediGuide Pro</h1>
+  </div>
   <div class="nav-links">
     <span onclick="switchTab('input')" class="active">Symptom Checker</span>
     <span onclick="switchTab('info')">Medicine Info</span>
     <span onclick="switchTab('report')">Report Card</span>
-    <!-- GOOGLE LENS BUTTON -->
-    <span onclick="window.open('https://lens.google.com/', '_blank')" style="color: #ffeb3b; font-weight: bold; border-left: 1px solid #fff; padding-left: 10px;">📷 Google Lens</span>
+    <span onclick="window.open('https://lens.google.com/', '_blank')" style="color: #ffeb3b; border-left: 1px solid #fff; padding-left: 10px;">📷 Lens</span>
   </div>
 </div>
 
 <div class="container">
-
   <!-- PANEL 1: SYMPTOM INPUT -->
   <div id="panel-input" class="panel active">
     <h2>Patient & Symptom Details</h2>
-
     <div class="row">
-      <div>
-        <label>Patient Name</label>
-        <input type="text" id="pName" placeholder="Enter full name" value="Guest">
-      </div>
-      <div>
-        <label>Age (Years)</label>
-        <input type="number" id="pAge" placeholder="e.g. 25" min="1" max="120">
-      </div>
+      <div><label>Patient Name</label><input type="text" id="pName" value="Guest"></div>
+      <div><label>Age (Years)</label><input type="number" id="pAge" placeholder="e.g. 25" min="1" max="120"></div>
     </div>
-
     <div class="row">
       <div>
         <label>Gender</label>
-        <select id="pGender">
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
+        <select id="pGender"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select>
       </div>
-      <div>
-        <label>Duration (Days)</label>
-        <input type="number" id="pDuration" placeholder="e.g. 2" min="1">
-      </div>
+      <div><label>Duration (Days)</label><input type="number" id="pDuration" placeholder="e.g. 2" min="1"></div>
     </div>
-
-    <label>Type Your Issues (Use commas, spaces, or full sentences)</label>
-    <textarea id="pSymptoms" placeholder="Example: FEVER"></textarea>
-    <p style="font-size:12px; color:#666; margin-top:-10px; margin-bottom:15px;">
-      <em>Tip: You can type full sentences in Hindi, English, or Hinglish. The doctors will extract the symptoms automatically.</em>
-    </p>
-
+    <label>Describe Your Symptoms</label>
+    <textarea id="pSymptoms" placeholder="Example: Fever, body pain and weakness since 2 days"></textarea>
     <button onclick="analyzeSymptoms()">🔍 Analyze & Generate Report</button>
   </div>
 
-  <!-- PANEL 2: INFO & PRICES -->
+  <!-- PANEL 2: INFO -->
   <div id="panel-info" class="panel">
     <h2>📊 Medicine Database</h2>
-    
     <div class="row" style="margin-bottom: 20px;">
       <div>
         <label>Search Medicine</label>
-        <input type="text" id="searchMed" placeholder="Type generic or brand name..." oninput="renderMedicineList()" style="margin-bottom: 0;">
+        <input type="text" id="searchMed" placeholder="Type generic or brand name..." oninput="renderMedicineList()">
       </div>
       <div>
         <label>Filter by Form</label>
-        <select id="filterForm" onchange="renderMedicineList()" style="margin-bottom: 0;">
-          <option value="all">All Forms</option>
-          <option value="Tablet">Tablet</option>
-          <option value="Syrup">Syrup</option>
-          <option value="Injection">Injection</option>
-          <option value="Syringe">Syringe</option>
-          <option value="Gel">Gel</option>
-          <option value="Device">Device</option>
-          <option value="Drops">Drops</option>
-          <option value="Cream">Cream</option>
+        <select id="filterForm" onchange="renderMedicineList()">
+          <option value="all">All Forms</option><option value="Tablet">Tablet</option><option value="Syrup">Syrup</option><option value="Injection">Injection</option><option value="Gel">Gel</option><option value="Cream">Cream</option>
         </select>
       </div>
     </div>
-
-    <div id="medListContainer" style="max-height: 500px; overflow-y: auto; padding-right: 5px;">
-      <!-- Injected via JS -->
-    </div>
+    <div id="medListContainer" style="max-height: 500px; overflow-y: auto;"></div>
   </div>
 
-  <!-- PANEL 3: DYNAMIC REPORT CARD -->
+  <!-- PANEL 3: REPORT -->
   <div id="panel-report" class="panel">
-    <div id="reportContent" class="report-section" style="display:block;">
-      <!-- Injected via JS -->
-    </div>
-    
-    <!-- Action Buttons -->
+    <div id="reportContent" class="report-section" style="display:block;"></div>
     <div class="row" style="margin-top: 15px; gap: 10px;">
-      <div style="flex: 1; min-width: 120px;">
-        <button class="btn-print" onclick="window.print()" style="margin-top: 0;">🖨️ Print / PDF</button>
-      </div>
-      <div style="flex: 1; min-width: 120px;">
-        <button onclick="copyReport()" style="background:#0b3d91; margin-top: 0;">📋 Copy Text</button>
-      </div>
-      <div style="flex: 1; min-width: 120px;">
-        <button onclick="shareWhatsApp()" style="background:#25D366; margin-top: 0;">📱 WhatsApp</button>
-      </div>
-      <div style="flex: 1; min-width: 120px;">
-        <button style="background:#6c757d; margin-top: 0;" onclick="switchTab('input')">↺ New Check</button>
-      </div>
+      <div style="flex: 1;"><button class="btn-print" onclick="window.print()">🖨️ Print / PDF</button></div>
+      <div style="flex: 1;"><button onclick="copyReport()" style="background:#0b3d91;">📋 Copy</button></div>
+      <div style="flex: 1;"><button onclick="switchTab('input')" style="background:#6c757d;">↺ New Check</button></div>
     </div>
   </div>
-
-  <footer>
-    MediGuide Pro v2.0 • Data verified for Indian market context •
-  </footer>
 </div>
 
 <script src="medicines.js"></script>
 
 <script>
-// --- GROQ API CONFIGURATION ---
+// --- GROQ CONFIG ---
 const GROQ_API_KEYS = [
-  "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", 
-  "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", 
-  "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",
-  "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"
+  "gsk_YOUR_FIRST_KEY_HERE", "gsk_YOUR_SECOND_KEY_HERE", 
+  "gsk_YOUR_THIRD_KEY_HERE", "gsk_YOUR_FOURTH_KEY_HERE"
 ];
 const GROQ_MODEL = "openai/gpt-oss-120b";
 let currentKeyIndex = 0;
-let lastAnalysisContext = null; // Stores data for fallback
+let lastAnalysisContext = null;
 
-// --- TAB SWITCHING LOGIC ---
+// --- SIDEBAR & TOOL LOGIC ---
+function openNav() { document.getElementById("mySidebar").style.width = "280px"; }
+function closeNav() { document.getElementById("mySidebar").style.width = "0"; }
+function openTool(tool) { document.getElementById("tool-" + tool).style.display = "block"; }
+function closeTool(tool) { document.getElementById("tool-" + tool).style.display = "none"; }
+
+// 1. Clock & Alarm
+setInterval(() => {
+  document.getElementById('live-clock').innerText = new Date().toLocaleTimeString();
+}, 1000);
+
+let alarmTime = null;
+function setAlarm() {
+  alarmTime = document.getElementById('alarm-time').value;
+  if(alarmTime) alert("Alarm set for " + alarmTime);
+}
+setInterval(() => {
+  if(alarmTime && new Date().toLocaleTimeString('en-US', {hour12: false}).substring(0,5) === alarmTime) {
+    alert("🚨 MEDICINE REMINDER: It's time to take your medicine!");
+    alarmTime = null; // Reset after ringing
+  }
+}, 10000);
+
+// 2. Notes
+function saveNotes() {
+  localStorage.setItem('med_notes', document.getElementById('patient-notes').value);
+  alert("Notes saved!");
+}
+document.getElementById('patient-notes').value = localStorage.getItem('med_notes') || "";
+
+// 3. Price Calculator Logic (FIXED BUG HERE)
+let calcCurrent = "0";
+let calcPrevious = "";
+let currentCalcOperator = null; // RENAMED VARIABLE TO AVOID COLLISION
+let calcResetNext = false;
+const calcDisplay = document.getElementById('calc-display');
+
+function updateCalcDisplay() {
+  if (calcCurrent.length > 12) { calcCurrent = calcCurrent.substring(0, 12); }
+  calcDisplay.innerText = calcCurrent;
+}
+
+function calcNumber(num) {
+  if (calcCurrent === "0" || calcResetNext) {
+    calcCurrent = num;
+    calcResetNext = false;
+  } else {
+    if (num === "." && calcCurrent.includes(".")) return;
+    calcCurrent += num;
+  }
+  updateCalcDisplay();
+}
+
+// RENAMED FUNCTION TO setCalcOperator
+function setCalcOperator(op) {
+  if (currentCalcOperator !== null && !calcResetNext) {
+    calcEquals();
+  }
+  calcPrevious = calcCurrent;
+  currentCalcOperator = op;
+  calcResetNext = true;
+}
+
+function calcEquals() {
+  if (currentCalcOperator === null || calcResetNext) return;
+  let result;
+  const prev = parseFloat(calcPrevious);
+  const current = parseFloat(calcCurrent);
+
+  switch (currentCalcOperator) {
+    case '+': result = prev + current; break;
+    case '-': result = prev - current; break;
+    case '*': result = prev * current; break;
+    case '/': 
+      if (current === 0) { result = "Error"; } 
+      else { result = prev / current; } 
+      break;
+    default: return;
+  }
+
+  calcCurrent = result.toString();
+  currentCalcOperator = null;
+  calcResetNext = true;
+  updateCalcDisplay();
+}
+
+function calcClear() {
+  calcCurrent = "0";
+  calcPrevious = "";
+  currentCalcOperator = null;
+  calcResetNext = false;
+  updateCalcDisplay();
+}
+
+function calcBackspace() {
+  if (calcResetNext) return;
+  calcCurrent = calcCurrent.slice(0, -1);
+  if (calcCurrent === "") calcCurrent = "0";
+  updateCalcDisplay();
+}
+
+// 4. Appointments
+function saveAppt() {
+  let date = document.getElementById('appt-date').value;
+  let doc = document.getElementById('appt-doc').value;
+  if(date && doc) {
+    let appts = JSON.parse(localStorage.getItem('med_appts') || "[]");
+    appts.push({date, doc});
+    localStorage.setItem('med_appts', JSON.stringify(appts));
+    loadAppts();
+    document.getElementById('appt-date').value = "";
+    document.getElementById('appt-doc').value = "";
+  }
+}
+function loadAppts() {
+  let appts = JSON.parse(localStorage.getItem('med_appts') || "[]");
+  document.getElementById('appt-list').innerHTML = appts.map(a => `<div style="background:#eee; padding:5px; margin-bottom:5px; border-radius:4px;">📅 ${a.date} - Dr. ${a.doc}</div>`).join('');
+}
+loadAppts();
+
+// --- TAB SWITCHING ---
 function switchTab(tabId) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-links span').forEach(s => s.classList.remove('active'));
-  
   if(tabId === 'input') document.getElementById('panel-input').classList.add('active');
   if(tabId === 'info') document.getElementById('panel-info').classList.add('active');
   if(tabId === 'report') document.getElementById('panel-report').classList.add('active');
-  
   const links = document.querySelectorAll('.nav-links span');
   if(tabId === 'input') links[0].classList.add('active');
   if(tabId === 'info') links[1].classList.add('active');
   if(tabId === 'report') links[2].classList.add('active');
-  
   window.scrollTo(0,0);
 }
 
-// --- CORE ANALYSIS ---
+// --- CORE ANALYSIS LOGIC ---
 function analyzeSymptoms() {
   const name = document.getElementById('pName').value.trim() || "Guest Patient";
   const age = parseInt(document.getElementById('pAge').value);
   const gender = document.getElementById('pGender').value;
   const duration = document.getElementById('pDuration').value || "Not specified";
-  
-  const doctorsText = "👩‍⚕️ Dr. Neha & 👨‍⚕️ Dr. Adarsh";
-  
   let originalInput = document.getElementById('pSymptoms').value;
   let cleanInput = originalInput.toLowerCase().replace(/[^a-z0-9\u0900-\u097F\s]/g, ' ');
 
   if (!cleanInput || cleanInput.trim() === "") { alert("Please type at least one symptom."); return; }
   if (isNaN(age) || age < 1) { alert("Please enter a valid age."); return; }
 
-  // --- 1. NEGATION HANDLER ---
-  const symptomKeywords = ["bukhar", "fever", "khansi", "cough", "sardi", "cold", "jhukham", "pain", "dard", "ulti", "vomiting", "kamzori", "weakness", "gas", "acidity", "teeth", "dant", "eye", "aankh", "ear", "kaan"];
-  const negations = ["nahi", "not", "no", "nope", "without", "bina", "kabhi nahi"];
-
-  negations.forEach(neg => {
-    symptomKeywords.forEach(sym => {
-      let regex1 = new RegExp(`\\b${sym}\\s+${neg}\\b`, 'gi');
-      let regex2 = new RegExp(`\\b${neg}\\s+${sym}\\b`, 'gi');
-      cleanInput = cleanInput.replace(regex1, ' ').replace(regex2, ' ');
-    });
-  });
-
-  let rawSymptoms = cleanInput;
-
-  // --- 2. MULTI-LANGUAGE DICTIONARY ---
   const langMap = {
-    "bukhar": "fever", "बुखार": "fever", "tej bukhar": "fever", "khansi": "cough", "खांसी": "cough", "कफ": "cough", "sardi": "cold", "सर्दी": "cold", "jhukham": "cold", "जुकाम": "cold", "xeek": "cold", "chheenk": "cold", "dard": "pain", "दर्द": "pain", "sareer dard": "body pain", "body dard": "body pain", "pet dard": "stomach ache", "पेट दर्द": "stomach ache", "sir dard": "headache", "सिर दर्द": "headache", "dant dard": "toothache", "दांत दर्द": "toothache", "daant": "toothache", "दांत": "toothache", "dant": "toothache", "kaan dard": "ear pain", "कान दर्द": "ear pain", "kaan": "ear pain", "aankh": "eye pain", "आंख": "eye pain", "aankh laal": "eye redness", "आंख लाल": "eye redness", "ulti": "vomiting", "उल्टी": "vomiting", "matli": "nausea", "kamzori": "weakness", "कमजोरी": "weakness", "thakan": "fatigue", "dast": "diarrhea", "दस्त": "diarrhea", "loose motion": "diarrhea", "periods": "periods issues", "पीरियड्स": "periods issues", "masik dharm": "periods issues", "sujan": "swelling", "सूजन": "swelling", "chot": "injury", "चोट": "injury", "gir gya": "injury", "khoon": "injury", "खून": "injury", "blood": "injury", "jalna": "burn", "जलना": "burn", "bhuk nhi": "no hunger", "khana khane ka man nhi": "no hunger", "भूख नहीं": "no hunger", "bal": "hair loss", "baal": "hair loss", "बाल": "hair loss", "hair": "hair loss"
+    "bukhar": "fever", "बुखार": "fever", "khansi": "cough", "खांसी": "cough", "sardi": "cold", "सर्दी": "cold", "jhukham": "cold", "जुकाम": "cold", "dard": "pain", "दर्द": "pain", "pet dard": "stomach ache", "पेट दर्द": "stomach ache", "sir dard": "headache", "सिर दर्द": "headache", "dant dard": "toothache", "दांत दर्द": "toothache", "ulti": "vomiting", "उल्टी": "vomiting", "kamzori": "weakness", "कमजोरी": "weakness", "dast": "diarrhea", "दस्त": "diarrhea", "chot": "injury", "चोट": "injury", "khoon": "injury", "खून": "injury"
   };
-
-  for (let key in langMap) {
-    if (rawSymptoms.includes(key)) { rawSymptoms += " " + langMap[key]; }
-  }
-
-  // --- 3. EXPANDED SYNONYM MAP ---
-  const synonymMap = {
-    "temperature": "fever", "hot body": "fever", "body ache": "body pain", "muscle pain": "body pain", "migraine": "headache", "swollen": "swelling", "wound": "injury", "cut": "injury", "sprain": "injury", "fell down": "injury", "bleding": "injury", "teeth": "toothache", "tooth": "toothache", "dental": "toothache", "gum": "toothache", "sensitive teeth": "toothache", "jalan": "toothache", "eye": "eye pain", "eyes": "eye pain", "red eye": "eye redness", "watery eyes": "eye redness", "aankh se pani": "eye redness", "ear": "ear pain", "ears": "ear pain", "ear ache": "ear pain", "stomach pain": "stomach ache", "belly pain": "stomach ache", "tummy": "stomach ache", "cramps": "stomach cramps", "gas": "acidity", "loose motions": "diarrhea", "throwing up": "vomiting", "puking": "vomiting", "nausea": "vomiting", "sneezing": "cold", "runny nose": "cold", "blocked nose": "cold", "sore throat": "throat infection", "throat pain": "throat infection", "coughing": "cough", "weak": "weakness", "tired": "fatigue", "no energy": "weakness", "dizzy": "dizziness", "period": "periods issues", "menstruation": "periods issues", "menses": "periods issues", "period pain": "periods issues", "irregular periods": "periods issues", "jaldi aate": "periods issues"
-  };
-
-  for (let key in synonymMap) {
-    if (rawSymptoms.includes(key)) { rawSymptoms += " " + synonymMap[key]; }
-  }
+  for (let key in langMap) { if (cleanInput.includes(key)) cleanInput += " " + langMap[key]; }
 
   let isChild = age < 12;
-  let isSenior = age > 65;
-  let hasFever = rawSymptoms.includes("fever");
-
-  // Find matching medicines for Fallback
   let detectedMeds = [];
   let matchedSymptoms = new Set();
 
   MEDICINE_DATA.forEach(med => {
     med.symptoms.forEach(sym => {
-      if (rawSymptoms.includes(sym)) {
+      if (cleanInput.includes(sym)) {
         matchedSymptoms.add(sym);
-        if (!detectedMeds.find(m => m.id === med.id)) {
-          detectedMeds.push(med);
-        }
+        if (!detectedMeds.find(m => m.id === med.id)) detectedMeds.push(med);
       }
     });
   });
 
-  // --- 4. EMERGENCY & FIRST AID ENGINE ---
-  let firstAidHTML = "";
-  if (rawSymptoms.includes("injury") || rawSymptoms.includes("burn") || rawSymptoms.includes("accident") || rawSymptoms.includes("fracture")) {
-    let aidSteps = "";
-    if (rawSymptoms.includes("burn")) {
-      aidSteps = `<li>Cool the burn under cool running water for 10-20 minutes.</li><li>Do NOT apply ice, butter, or toothpaste.</li><li>Cover loosely with a clean, sterile bandage or cloth.</li>`;
-    } else if (rawSymptoms.includes("injury") && (rawSymptoms.includes("blood") || rawSymptoms.includes("khoon"))) {
-      aidSteps = `<li><strong>Stop Bleeding:</strong> Apply firm, direct pressure on the wound with a clean cloth.</li><li>Do NOT remove the cloth if it gets soaked; add another layer on top.</li><li>Elevate the injured area above the heart if possible.</li><li>Wash minor cuts with clean water and apply an antiseptic (Betadine).</li>`;
-    } else {
-      aidSteps = `<li><strong>R.I.C.E Method:</strong> <strong>R</strong>est the area, <strong>I</strong>ce it (15 mins), <strong>C</strong>ompress with a crepe bandage, <strong>E</strong>levate it.</li><li>Do NOT try to forcefully move a broken or severely sprained joint.</li><li>Immobilize the area using a splint or cloth if you must move.</li>`;
-    }
-    firstAidHTML = `
-      <div style="background: #ffebee; border: 2px solid #d90429; padding: 20px; margin: 15px 0; border-radius: 8px; color: #b71c1c;">
-        <h3 style="margin-top: 0; color: #d90429;">🚨 EMERGENCY FIRST AID (DO THIS IMMEDIATELY)</h3>
-        <p>Based on your description, this is a physical injury. If you are in a remote area or waiting for a doctor, follow these steps:</p>
-        <ul style="margin-left: 20px; font-weight: bold; line-height: 1.8;">${aidSteps}</ul>
-        <p style="margin-top: 15px; font-size: 13px;"><em>⚠️ If bleeding does not stop after 10 minutes of firm pressure, or if the bone is visible, it is a life-threatening emergency. Get to a hospital immediately.</em></p>
-      </div>`;
-  }
-
-  // Save context for fallback if API fails
   lastAnalysisContext = {
-    name, age, gender, duration, isChild, isSenior, hasFever, rawSymptoms, firstAidHTML, doctorsText,
+    name, age, gender, duration, isChild, cleanInput, originalInput,
     detectedMeds, matchedSymptoms: Array.from(matchedSymptoms)
   };
 
-  // --- 5. IF EMERGENCY, SHOW LOCAL FIRST AID IMMEDIATELY (SAFETY FIRST) ---
-  if (firstAidHTML !== "") {
-    buildLocalReport(); 
-    return;
-  }
-
-  // --- 6. CHECK CACHE ---
-  const cachedResponse = localStorage.getItem('ai_cache_' + cleanInput);
-  if (cachedResponse) {
-    let displayCache = cachedResponse.replace('🌐 Live AI (Groq)', '⚡ Cached AI Answer');
-    document.getElementById('reportContent').innerHTML = displayCache;
-    switchTab('report');
-    return;
-  }
-
-  // --- 7. ALWAYS CALL GROQ API FIRST ---
-  fetchGroqResponse(originalInput, cleanInput);
+  document.getElementById('reportContent').innerHTML = `<div style="text-align:center; padding:50px;"><h3 style="color:var(--primary);">🩺 Pharmacist AI is finding medicines...</h3></div>`;
+  switchTab('report');
+  fetchGroqMeds();
 }
 
-// --- GROQ API FETCH ---
-async function fetchGroqResponse(originalInput, cacheKey) {
-  document.getElementById('reportContent').innerHTML = `
-    <div style="text-align: center; padding: 50px;">
-      <h3 style="color: var(--primary);">🩺 The Medical Team is reviewing your symptoms...</h3>
-      <p>Please wait a moment.</p>
-    </div>`;
-  switchTab('report');
-
-  const doctorsText = lastAnalysisContext.doctorsText;
-  const age = lastAnalysisContext.age;
-  const gender = lastAnalysisContext.gender;
-  const isChild = lastAnalysisContext.isChild;
-
-  // --- NEW SYSTEM PROMPT: STRICT HTML, LANGUAGE MATCHING, DETAILED ---
-  const systemPrompt = `You are a medical team consisting of ${doctorsText}, kind, supportive, and experienced Indian doctors. 
-  Patient Details: Age: ${age}, Gender: ${gender}.
-  Patient's Description: "${originalInput}".
-
-  CRITICAL INSTRUCTIONS:
-  1. LANGUAGE MATCHING: You MUST reply in the EXACT SAME language the patient used. If they typed in English, reply in English. If Hinglish (Hindi in English letters), reply in Hinglish. If they typed in Hindi script, reply in Hindi script.
-  2. NO MARKDOWN: Do NOT use markdown formatting (like **, ##, --). 
-  3. FORMAT: You must output RAW HTML tags ONLY, following the exact structure below.
-  4. TONE: Be warm, reassuring, and highly detailed like a real Indian doctor consultation.
-
-  You MUST use this exact HTML structure for your output:
+// --- FETCH AI MEDS ONLY ---
+async function fetchGroqMeds() {
+  const c = lastAnalysisContext;
   
-  <div style="background: #e7f5ff; border-left: 4px solid #0b3d91; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
-    <strong>🩺 ${doctorsText}'s Reassurance:</strong><br>
-    [Write your warm, reassuring opening paragraph here]
-  </div>
-
-  <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
-    <h4 style="color: #1b5e20; margin-bottom: 8px;">💚 Likely Issue & Supportive Care</h4>
-    <ul style="margin-left: 20px; line-height: 1.6;">
-      <li>🍲 <strong>Food to Eat:</strong> [Suggest easily digestible foods, AND specifically recommend fresh fruits and juices]</li>
-      <li>🚫 <strong>Food to Avoid:</strong> [Suggest foods to avoid]</li>
-      <li>🌿 <strong>Natural Herbs/Remedies:</strong> [Suggest herbs]</li>
-      <li>💧 <strong>Care & Temperature:</strong> [Suggest care steps]</li>
-    </ul>
-  </div>
-
-  <h3 style="color: #0077b6; margin-top: 20px;">💊 Suggested Medicines</h3>
-  <ul style="margin-left: 20px; line-height: 1.8; margin-bottom: 15px;">
-    <li><strong>[Medicine 1 Name (Tablet/Syrup/Injection)]:</strong> [Dosage] - [When to take, e.g., after food]</li>
-    <li><strong>[Medicine 2 Name]:</strong> [Dosage] - [When to take]</li>
-  </ul>
-
-  <div style="background: #fff3cd; border-left: 4px solid #ffb703; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
-    <h4 style="color: #856404; margin-bottom: 8px;">🛒 Optional Recovery Boosters (Supplements & Diet)</h4>
-        <p style="font-size: 14px; color: #856404;">[Suggest 1-2 supplements like Multivitamins, Iron tonics, Protein powders like Ensure/Protinex, or fruit juices. Explain why they help in recovery]</p>
-  </div>
-
-  [IF SEVERE: Add this block: <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin-bottom: 15px;"><strong>🩻 Diagnostic Test Needed:</strong> [Suggest X-ray/USG/MRI and why]</div>]
-
-  <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin-top: 15px;">
-    <strong>⚠️ Strict Warning:</strong> [Write the warning, e.g., "Agar 2 din me aaram na mile, toh turant doctor se milein."]
+  const systemPrompt = `You are an expert Indian Pharmacist. A ${c.age}-year-old ${c.gender} patient reports: "${c.originalInput}". 
+  List 2 to 4 appropriate medicines (Tablet, Syrup, Injection, or Cream). 
+  Output ONLY raw HTML using this exact structure. Do NOT include greeting text, diet, or herbs.
+  
+  <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #0077b6; margin-bottom: 10px;">
+    <h4 style="color: #0b3d91; margin-bottom: 5px;">💊 [Medicine Name] ([Form] - [Strength])</h4>
+    <p style="font-size: 13px; margin-bottom: 5px;"><strong>Brands:</strong> [Brand Names]</p>
+    <div style="background: #fff; padding: 5px; border-radius: 4px; font-size: 13px; margin-bottom: 5px;"><strong>Dose:</strong> [Dosage]</div>
+    <p style="font-size: 12px; color: #d90429;"><strong>Warning:</strong> [Short Warning]</p>
   </div>`;
 
   let attempts = 0;
-  const maxAttempts = GROQ_API_KEYS.length;
-
-  while (attempts < maxAttempts) {
+  while (attempts < GROQ_API_KEYS.length) {
     const currentKey = GROQ_API_KEYS[currentKeyIndex];
-    
     try {
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${currentKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          messages: [{ role: "user", content: systemPrompt }],
-          temperature: 0.5,
-          max_tokens: 1500 // INCREASED TOKEN LIMIT FOR DETAILED RESPONSES
-        })
+        headers: { 'Authorization': `Bearer ${currentKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: "user", content: systemPrompt }], temperature: 0.4, max_tokens: 800 })
       });
 
       if (response.ok) {
         currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
         const data = await response.json();
-        
-        // The AI is now returning raw HTML. We just inject it.
-        const aiReply = data.choices[0].message.content;
-
-        const aiHTML = `
-          <div class="report-card" style="border: 2px solid #00b4d8;">
-            <div class="report-header" style="background: #00b4d8; display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <h2 style="color:white; border:none; margin:0; padding:0;">${doctorsText}'s Advice</h2>
-                <span style="background: #023e8a; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block;">🌐 Live AI (Groq)</span>
-              </div>
-              <span>${new Date().toLocaleString()}</span>
-            </div>
-            <div class="report-body">
-              ${aiReply}
-              <p style="margin-top: 20px; font-size: 13px; color: #d90429; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 10px;">
-                ⚠️ DISCLAIMER: This is AI-generated advice. Always consult a real doctor before taking any medicine.
-              </p>
-            </div>
-          </div>`;
-
-        localStorage.setItem('ai_cache_' + cacheKey, aiHTML);
-        document.getElementById('reportContent').innerHTML = aiHTML;
-        switchTab('report');
-        return; 
-      } 
-      else if (response.status === 429) {
+        const aiHTML = data.choices[0].message.content;
+        buildHybridReport(aiHTML, false);
+        return;
+      } else if (response.status === 429) {
         currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
         attempts++;
-        await new Promise(resolve => setTimeout(resolve, 500)); 
-      } 
-      else {
-        throw new Error(`API Error: ${response.status}`);
-      }
-    } catch (error) {
-      if (error.message.includes("Failed to fetch")) { break; }
+      } else { throw new Error("API Error"); }
+    } catch (e) {
+      if (e.message.includes("Failed to fetch")) break;
       attempts++;
     }
   }
-
-  // Fallback if API fails
-  console.log("All API keys exhausted or offline. Falling back to Local Database...");
-  if (lastAnalysisContext.detectedMeds.length > 0) {
-    buildLocalReport();
-  } else {
-    generateOfflineFallback(originalInput, doctorsText);
-  }
+  buildHybridReport("", true);
 }
-// --- BUILD LOCAL REPORT (FALLBACK) ---
-function buildLocalReport() {
-  const c = lastAnalysisContext; // Shortcut
-  let reportHTML = "";
+
+// --- BUILD HYBRID REPORT (AI MEDS + LOCAL SUPPORT) ---
+function buildHybridReport(aiMedsHTML, apiFailed) {
+  const c = lastAnalysisContext;
+  const doctorsText = "👩‍⚕️ Dr. Neha & 👨‍⚕️ Dr. Adarsh";
   
   const careAdvice = {
-    "fever": { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", temp: "Use a damp cloth on forehead if very hot. Keep room ventilated.", how: "Take medicines with normal room temperature water after food." },
-    "vomiting": { eat: "BRAT diet (Banana, Rice, Applesauce, Toast), plain curd, ORS.", avoid: "Spicy, oily, or heavy dairy foods.", herbs: "Ginger tea, mint leaves, lemon water.", temp: "Sip fluids slowly and frequently.", how: "Take anti-vomiting tablet 30 mins before eating with a sip of water." },
-    "stomach ache": { eat: "Khichdi, curd rice, bananas, coconut water.", avoid: "Tea, coffee, spicy food, outside food.", herbs: "Ajwain (carom seed) water, fennel seeds (saunf).", temp: "Place a warm water bag on the stomach.", how: "Take medicines with warm water, strictly after food." },
+    "fever": { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", temp: "Use a damp cloth on forehead if very hot.", how: "Take medicines with normal room temperature water after food." },
+    "vomiting": { eat: "BRAT diet (Banana, Rice, Applesauce, Toast), plain curd, ORS.", avoid: "Spicy, oily, or heavy dairy foods.", herbs: "Ginger tea, mint leaves, lemon water.", temp: "Sip fluids slowly and frequently.", how: "Take anti-vomiting tablet 30 mins before eating." },
+    "stomach ache": { eat: "Khichdi, curd rice, bananas, coconut water.", avoid: "Tea, coffee, spicy food, outside food.", herbs: "Ajwain water, fennel seeds (saunf).", temp: "Place a warm water bag on the stomach.", how: "Take medicines with warm water, strictly after food." },
     "cough": { eat: "Warm water, honey, turmeric milk, soups.", avoid: "Cold water, ice cream, sour foods.", herbs: "Steam inhalation, ginger, Tulsi, Mulethi.", temp: "Avoid cold air and AC.", how: "Take syrup with warm water. Do not drink water immediately after." },
     "cold": { eat: "Warm soups, ginger tea, turmeric milk.", avoid: "Cold foods, yogurt, bananas.", herbs: "Steam, Tulsi leaves, black pepper.", temp: "Keep yourself warm.", how: "Antihistamines cause drowsiness, take them with water at night." },
     "body pain": { eat: "Protein-rich foods, warm water.", avoid: "Heavy physical exertion.", herbs: "Warm compress on joints.", temp: "Keep body warm.", how: "Take painkillers after a full meal with water." },
-    "headache": { eat: "Hydrate well, drink coconut water or lemon water.", avoid: "Loud noises, bright screens, skipping meals.", herbs: "Peppermint oil on temples.", temp: "Rest in a dark, quiet room.", how: "Take medicine with water. Do not take on an empty stomach." },
-    "toothache": { eat: "Soft foods, avoid chewing on the painful side.", avoid: "Very hot, cold, or sweet foods.", herbs: "Saltwater gargle, clove oil on the tooth.", temp: "Apply a cold pack on the outside of the cheek.", how: "Take painkillers after meals." },
-    "eye pain": { eat: "Vitamin A rich foods (carrots).", avoid: "Rubbing eyes, screens.", herbs: "Cold compress, splashing clean water.", temp: "Rest your eyes.", how: "Do not touch the dropper tip to your eye." },
-    "injury": { eat: "Protein-rich foods for healing.", avoid: "Moving the injured part too much.", herbs: "Turmeric milk (anti-inflammatory).", temp: "Ice pack for the first 24 hours, warm compress after.", how: "Take painkillers after meals." }
+    "headache": { eat: "Hydrate well, drink coconut water.", avoid: "Loud noises, bright screens, skipping meals.", herbs: "Peppermint oil on temples.", temp: "Rest in a dark, quiet room.", how: "Take medicine with water. Do not take on an empty stomach." }
   };
   
   const boosterMap = {
-    "fever": "Vitamin C (Oranges, Amla), Zinc supplements, and plenty of fresh juices (like Mosambi or Coconut water).",
-    "cold": "Warm Kadha with Tulsi/Ginger, Vitamin C chewable tablets, and Chyawanprash.",
-    "cough": "Honey with ginger, Mulethi (Licorice) tea, and Vitamin C lozenges.",
-    "weakness": "Iron & Folic Acid tonic (like Livogen), Multivitamin pills, Dates, and Bananas.",
+    "fever": "Vitamin C (Oranges, Amla), Zinc supplements, and plenty of fresh juices.",
+    "cold": "Warm Kadha with Tulsi, Vitamin C chewable tablets, and Chyawanprash.",
+    "cough": "Honey with ginger, Mulethi tea, and Vitamin C lozenges.",
+    "weakness": "Iron & Folic Acid tonic, Multivitamin pills, Dates, and Bananas.",
     "vomiting": "Electral ORS, Probiotic drinks (Yakult), and Coconut water.",
-    "stomach ache": "Probiotic curd, Jeera (Cumin) water, and a Multivitamin after recovery.",
-    "injury": "Calcium + Vitamin D3 tablets, Protein powder (Ensure/Nuramen), and Turmeric milk for healing.",
-    "body pain": "Vitamin B-Complex capsules, Magnesium-rich foods (nuts/seeds), and warm water.",
-    "headache": "Magnesium supplements, hydration (lemon water), and Vitamin B2.",
-    "periods issues": "Iron tonic, Calcium tablets, and Folic acid rich foods (green leafy vegetables).",
-    "no hunger": "PediaSure (for kids) or Protinex (for adults), and Vitamin B-Complex syrup to boost appetite."
+    "stomach ache": "Probiotic curd, Jeera water, and a Multivitamin after recovery.",
+    "injury": "Calcium + Vitamin D3 tablets, Protein powder, and Turmeric milk.",
+    "body pain": "Vitamin B-Complex capsules, Magnesium-rich foods, and warm water."
   };
 
-  let summaryParagraph = `Hello <strong>${c.name}</strong>, we are ${c.doctorsText}. We understand you are experiencing <strong>${c.matchedSymptoms.join(", ")}</strong>. Please do not panic. Your symptoms are common and manageable. Below is a complete treatment plan including medicines, supportive diet, and natural care.`;
-  if(c.firstAidHTML !== "") {
-      summaryParagraph = `Hello <strong>${c.name}</strong>, we are ${c.doctorsText}. Based on your description, you have an injury. Please follow the <strong>First Aid steps immediately</strong> before taking any medicines. Do not panic.`;
+  let careHTML = "";
+  if (c.matchedSymptoms.length > 0) {
+    c.matchedSymptoms.forEach(sym => {
+      let advice = careAdvice[sym] || careAdvice["fever"]; 
+      careHTML += `
+        <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #1b5e20;">
+          <h4 style="margin-bottom: 8px;">💚 Supportive Care for ${sym.toUpperCase()}</h4>
+          <ul style="margin-left: 20px; line-height: 1.6;">
+            <li>🍲 <strong>Food:</strong> ${advice.eat}</li>
+            <li>🚫 <strong>Avoid:</strong> ${advice.avoid}</li>
+            <li>🌿 <strong>Herbs:</strong> ${advice.herbs}</li>
+            <li>💧 <strong>Care:</strong> ${advice.temp}</li>
+            <li>💊 <strong>How to take:</strong> ${advice.how}</li>
+          </ul>
+        </div>`;
+    });
+  } else {
+    careHTML = `<div style="background: #e8f5e9; padding: 15px; border-radius: 6px;"><h4>💚 General Supportive Care</h4><p>Drink plenty of water, rest well, and eat light easily digestible food (Khichdi, fruits). Avoid oily or spicy food.</p></div>`;
   }
 
-  let careHTML = "";
-  c.matchedSymptoms.forEach(sym => {
-    let advice = careAdvice[sym] || careAdvice["fever"]; 
-    careHTML += `
-      <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #1b5e20;">
-        <h4 style="margin-bottom: 8px;">💚 Supportive Care for ${sym.toUpperCase()}</h4>
-        <ul style="margin-left: 20px; line-height: 1.6;">
-          <li>🍲 <strong>Food to Eat:</strong> ${advice.eat}</li>
-          <li>🚫 <strong>Food to Avoid:</strong> ${advice.avoid}</li>
-          <li>🌿 <strong>Natural Herbs/Remedies:</strong> ${advice.herbs}</li>
-          <li>🌡️ <strong>Care & Temperature:</strong> ${advice.temp}</li>
-          <li>💧 <strong>How to take medicine:</strong> ${advice.how}</li>
-        </ul>
-      </div>`;
-  });
+  let boosterHTML = `<div style="background: #fff3cd; border-left: 4px solid #ffb703; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #856404;">
+    <h4 style="margin-bottom: 8px;">🛒 Optional Recovery Boosters</h4><ul style="margin-left: 20px; line-height: 1.6;">`;
+  if (c.matchedSymptoms.length > 0) {
+    c.matchedSymptoms.forEach(sym => {
+      boosterHTML += `<li><strong>${sym.toUpperCase()}:</strong> ${boosterMap[sym] || "Multivitamins, fresh fruits, and plenty of water."}</li>`;
+    });
+  } else {
+    boosterHTML += `<li><strong>General:</strong> Multivitamins, fresh fruits (Bananas, Apples), and plenty of water.</li>`;
+  }
+  boosterHTML += `</ul></div>`;
 
-  reportHTML += `
-    <div class="report-card">
-      <div class="report-header">
+  let fallbackMedsHTML = "";
+  if (apiFailed && c.detectedMeds.length > 0) {
+    fallbackMedsHTML = `<div style="background: #f8d7da; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; color: #721c24;"><strong>Note:</strong> AI limit reached. Showing verified local database medicines.</div>`;
+    c.detectedMeds.forEach(med => {
+      fallbackMedsHTML += `
+      <div style="margin-top:15px; background:#f8f9fa; padding:15px; border-radius:8px; border-left: 4px solid var(--secondary);">
+        <h4 style="color:var(--primary);">💊 ${med.generic_name} (${med.strength})</h4>
+        <p style="font-size:13px;"><strong>Brands:</strong> ${med.brand_names.join(', ')}</p>
+        <div class="dosage-line"><strong>Dose:</strong> ${c.isChild ? med.dosage_child : med.dosage_adult}</div>
+      </div>`;
+    });
+  }
+
+  let reportHTML = "";
+
+  if (!apiFailed) {
+    reportHTML += `
+    <div class="report-card" style="border: 2px solid #00b4d8;">
+      <div class="report-header" style="background: #00b4d8; display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <h2 style="color:white; border:none; margin:0; padding:0;">Health Report Card</h2>
-          <span style="background: var(--success); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block;">💾 Verified Local Database (API Limit Reached)</span>
+          <h2 style="color:white; margin:0; padding:0;">🌐 AI Pharmacist Recommendation</h2>
+          <span style="background: #023e8a; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block;">Live Groq</span>
         </div>
         <span>${new Date().toLocaleString()}</span>
       </div>
       <div class="report-body">
-        <p><strong>Patient:</strong> ${c.name} | <strong>Age:</strong> ${c.age} | <strong>Gender:</strong> ${c.gender}</p>
-        <p><strong>Reported Issues:</strong> ${c.matchedSymptoms.join(", ")} (Duration: ${c.duration})</p>
-        ${c.firstAidHTML}
-        <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; line-height: 1.5; color: #0b3d91;">
-          <strong>${c.doctorsText}'s Advice:</strong><br>${summaryParagraph}
-        </div>
-        ${careHTML}
-        
-        <div style="background: #fff3cd; border-left: 4px solid #ffb703; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #856404;">
-          <h4 style="margin-bottom: 8px;">🛒 Optional Recovery Boosters (Supplements & Diet)</h4>
-          <p style="margin-bottom: 5px;">Along with the medicines, doctors usually recommend these to help you recover faster:</p>
-          <ul style="margin-left: 20px; line-height: 1.6;">
-            ${c.matchedSymptoms.map(sym => `<li><strong>${sym.toUpperCase()}:</strong> ${boosterMap[sym] || "Multivitamins, fresh fruits, and plenty of water."}</li>`).join('')}
-          </ul>
-          <p style="font-size: 12px; margin-top: 8px; font-style: italic;">*Note: These are optional. Fruits and a good diet are better than artificial supplements.</p>
-        </div>
-
-        <hr style="margin:15px 0; border-top:1px dashed #ccc;">`;
-
-  if (c.isChild) reportHTML += `<div class="warning-card">🚨 <strong>PEDIATRIC WARNING:</strong> For children under 12, DO NOT give adult cough/cold syrups. Consult a pediatrician.</div>`;
-  if (c.isSenior) reportHTML += `<div class="warning-card">👴 <strong>SENIOR CITIZEN NOTE:</strong> Lower doses may be needed.</div>`;
-  if (c.hasFever && c.rawSymptoms.includes("cough")) reportHTML += `<div class="warning-card">⚠️ <strong>COMBINATION ALERT:</strong> DO NOT take an extra Paracetamol tablet if you are taking cough syrup.</div>`;
-
-  c.detectedMeds.forEach(med => {
-    let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺', Powder: '🥛', "Diagnostic Scan": '🩻' }[med.form] || '💊';
-    let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
-    let formLabel = `<span style="background:#e0e0e0; color:#333; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">${med.form}</span>`;
-    
-    let treats = med.symptoms.filter(s => c.matchedSymptoms.includes(s));
-    let treatsText = treats.length > 0 ? `<span style="font-size:12px; color:#0077b6; font-weight:bold;">(For: ${treats.join(', ')})</span>` : '';
-    let dosageInfo = med.dosage_adult;
-    let extraWarning = "";
-
-    if (c.isChild) {
-      dosageInfo = med.dosage_child;
-      if (med.dosage_child.toLowerCase().includes("consult") || med.dosage_child.toLowerCase().includes("doctor")) {
-        extraWarning = `<div class="warning-card" style="margin-top:10px; margin-bottom:0; padding:10px;">🚨 <strong>PEDIATRIC ALERT:</strong> ${med.dosage_child}. Do not guess the dose for a child.</div>`;
-      } else {
-        extraWarning = `<div class="info-card" style="margin-top:10px; margin-bottom:0; padding:10px; background:#fff3cd;">👶 <strong>PEDIATRIC DOSE:</strong> ${med.dosage_child}</div>`;
-      }
-    } else {
-      if (med.form === "Syrup") dosageInfo += ` (${med.mg_per_5ml}mg per 5ml)`;
-      if (med.form === "Injection" || med.rx_required) dosageInfo = `<strong style="color:#d90429;">PRESCRIPTION ONLY.</strong> Must be given by a doctor/nurse.`;
-    }
-
+        ${aiMedsHTML}
+      </div>
+    </div>`;
+  } else {
     reportHTML += `
-      <div style="margin-top:20px; background:#f8f9fa; padding:15px; border-radius:8px; border-left: 4px solid var(--secondary);">
-        <h4 style="color:var(--primary); margin-bottom:10px;">${icon} ${med.generic_name} (${med.strength}) ${rxBadge} ${formLabel} <br><span style="font-size:13px; font-weight:normal;">${treatsText}</span></h4>
-        <p><strong>Brands:</strong> ${med.brand_names.join(', ')}</p>
-        <p><strong>Price:</strong> <span class="price-tag">₹${med.price_inr} ${med.price_unit}</span></p>
-        <div class="dosage-line"><strong>💊 Dose:</strong> ${dosageInfo}</div>
-        <div class="dosage-line"><strong>⏱️ Max Limit:</strong> ${med.max_daily}</div>
-        ${extraWarning}
-        <p style="margin-top:10px;"><strong>🌿 Natural Aid:</strong> ${med.natural_aid}</p>
-        <p style="font-size:13px; color:#d90429; margin-top:5px;"><strong>⚠️ Warning:</strong> ${med.warning}</p>
-      </div>`;
-  });
+    <div class="report-card" style="border: 2px solid var(--success);">
+      <div class="report-header" style="background: var(--success); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="color:white; margin:0; padding:0;">💾 Verified Local Medicines</h2>
+          <span style="background: #023e8a; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block;">Offline Database</span>
+        </div>
+        <span>${new Date().toLocaleString()}</span>
+      </div>
+      <div class="report-body">
+        ${fallbackMedsHTML}
+      </div>
+    </div>`;
+  }
+
+  reportHTML += `
+    <div class="report-card" style="border: 2px solid var(--primary);">
+      <div class="report-header">
+        <div>
+          <h2 style="color:white; margin:0; padding:0;">${doctorsText}'s Advice</h2>
+        </div>
+      </div>
+      <div class="report-body">
+        <p><strong>Patient:</strong> ${c.name} | <strong>Age:</strong> ${c.age} | <strong>Gender:</strong> ${c.gender}</p>
+        
+        <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; color: #0b3d91;">
+          <strong>🩺 Reassurance:</strong><br>
+          Hello <strong>${c.name}</strong>. We are ${doctorsText}. Do not panic. We have reviewed your symptoms (${c.matchedSymptoms.join(", ") || "General"}). Along with the medicines above, please follow the supportive care below to recover faster.
+        </div>
+
+        ${careHTML}
+        ${boosterHTML}
+
+        <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin-top: 15px;">
+          <strong>⚠️ Strict Warning:</strong> If symptoms do not improve in 2 days, or if you experience severe pain, breathing difficulty, or chest pain, visit a hospital immediately.
+        </div>
+      </div>
+    </div>`;
 
   document.getElementById('reportContent').innerHTML = reportHTML;
   switchTab('report');
 }
 
-// --- OFFLINE EMERGENCY TRIAGE FALLBACK ---
-function generateOfflineFallback(originalInput, doctorsText) {
-  let fallbackHTML = `
-    <div class="report-card" style="border: 2px solid var(--warning);">
-      <div class="report-header" style="background: var(--warning); color: #333; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <h2 style="color:#333; border:none; margin:0; padding:0;">${doctorsText}'s Offline Triage</h2>
-          <span style="background: #d90429; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block;">🛑 Offline Fallback</span>
-        </div>
-        <span>${new Date().toLocaleString()}</span>
-      </div>
-      <div class="report-body">
-        
-        <div style="background: #fff3cd; border-left: 4px solid var(--warning); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
-          <strong>⚠️ Internet/API Unavailable:</strong> Our AI doctors cannot be reached right now. However, we will <strong>never leave you without help</strong>. 
-          Please follow the general supportive care below while trying to connect to a doctor.
-        </div>
-
-        <p><strong>Your Description:</strong> "${originalInput}"</p>
-        
-        <h3 style="color: var(--primary); margin-top: 20px;">🩺 General Supportive Care (Safe for most conditions)</h3>
-        <ul style="margin-left: 20px; line-height: 1.8;">
-          <li>💧 <strong>Hydration:</strong> Drink plenty of clean water, ORS, or coconut water.</li>
-          <li>🍲 <strong>Food:</strong> Eat light, easily digestible foods like Khichdi, bananas, or toast. Avoid spicy or oily food.</li>
-          <li>🛏️ <strong>Rest:</strong> Lie down in a quiet, well-ventilated room.</li>
-          <li>🌿 <strong>Natural Aid:</strong> For mild pain or fever, you can use a damp cloth on the forehead or a warm compress on sore muscles.</li>
-        </ul>
-
-        <h3 style="color: var(--danger); margin-top: 20px;">🚨 When to seek Emergency Help</h3>
-        <p>If you experience any of the following, go to the nearest hospital immediately:</p>
-        <ul style="margin-left: 20px; color: var(--danger); font-weight: bold; line-height: 1.8;">
-          <li>Chest pain or difficulty breathing.</li>
-          <li>Severe, unstoppable bleeding.</li>
-          <li>Loss of consciousness or confusion.</li>
-          <li>Stiff neck with high fever.</li>
-        </ul>
-
-        <hr style="margin:20px 0;">
-        
-        <p style="font-size: 13px; color: #666; text-align: center;">
-          <em>We apologize for the inconvenience. Please try reconnecting your internet to get a personalized prescription from ${doctorsText}.</em>
-        </p>
-        <button onclick="switchTab('input')" style="margin-top: 15px; background: var(--primary);">Go Back & Try Again</button>
-      </div>
-    </div>
-  `;
-
-  document.getElementById('reportContent').innerHTML = fallbackHTML;
-  switchTab('report');
-}
-
-// --- DYNAMIC SEARCH & FILTER LOGIC ---
+// --- SEARCH & UI HELPERS ---
 function renderMedicineList() {
   const query = document.getElementById('searchMed').value.toLowerCase();
   const formFilter = document.getElementById('filterForm').value;
   const container = document.getElementById('medListContainer');
   
   let filtered = MEDICINE_DATA.filter(med => {
-    const matchesSearch = med.generic_name.toLowerCase().includes(query) || 
-                          med.brand_names.join(' ').toLowerCase().includes(query) ||
-                          med.symptoms.join(' ').toLowerCase().includes(query);
+    const matchesSearch = med.generic_name.toLowerCase().includes(query) || med.brand_names.join(' ').toLowerCase().includes(query) || med.symptoms.join(' ').toLowerCase().includes(query);
     const matchesForm = formFilter === 'all' || med.form === formFilter;
     return matchesSearch && matchesForm;
   });
   
   if (filtered.length === 0) {
-    container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No medicines found matching your search.</p>';
-    return;
+    container.innerHTML = '<p style="text-align: center; padding: 20px;">No medicines found.</p>'; return;
   }
   
   container.innerHTML = filtered.map(med => {
     let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺', Powder: '🥛', "Diagnostic Scan": '🩻' }[med.form] || '💊';
-    let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
-    let formLabel = `<span style="background:#e0e0e0; color:#333; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">${med.form}</span>`;
-    
     return `
-      <div class="info-card" style="margin-bottom: 10px; border-left: 4px solid ${med.rx_required ? 'var(--danger)' : 'var(--secondary)'};">
-        <h4 style="color:var(--primary); margin-bottom:5px;">${icon} ${med.generic_name} (${med.strength}) ${rxBadge} ${formLabel}</h4>
+      <div class="info-card" style="margin-bottom: 10px; border-left: 4px solid var(--secondary); background: #f8f9fa; padding: 15px; border-radius: 6px;">
+        <h4 style="color:var(--primary); margin-bottom:5px;">${icon} ${med.generic_name} (${med.strength})</h4>
         <p style="font-size: 13px; margin-bottom: 5px;"><strong>Brands:</strong> ${med.brand_names.join(', ')}</p>
-        <p style="font-size: 13px; margin-bottom: 5px;"><strong>Price:</strong> <span class="price-tag">₹${med.price_inr} ${med.price_unit}</span></p>
+        <p style="font-size: 13px; margin-bottom: 5px;"><strong>Price:</strong> <span class="price-tag">₹${med.price_inr}</span></p>
         <div class="dosage-line"><strong>Dose:</strong> ${med.dosage_adult}</div>
-        <p style="font-size: 12px; color: #d90429; margin-top: 5px;"><strong>Warning:</strong> ${med.warning}</p>
       </div>
     `;
   }).join('');
 }
 
-// --- COPY & SHARE LOGIC ---
 function copyReport() {
-  const reportText = document.getElementById('reportContent').innerText;
-  navigator.clipboard.writeText(reportText).then(() => {
-    alert("✅ Report copied to clipboard!");
-  }).catch(err => {
-    alert("Failed to copy: " + err);
-  });
+  navigator.clipboard.writeText(document.getElementById('reportContent').innerText).then(() => alert("✅ Copied!"));
 }
 
-function shareWhatsApp() {
-  const reportText = document.getElementById('reportContent').innerText;
-  const encodedText = encodeURIComponent("MediGuide Pro Report:\n\n" + reportText);
-  window.open('https://api.whatsapp.com/send?text=' + encodedText, '_blank');
-}
-
-// Load the list automatically when the page opens
-window.onload = function() {
-  if (typeof MEDICINE_DATA !== 'undefined') {
-    renderMedicineList();
-  }
-};
+window.onload = function() { if (typeof MEDICINE_DATA !== 'undefined') renderMedicineList(); };
 </script>
 </body>
 </html>
