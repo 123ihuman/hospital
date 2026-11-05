@@ -1,5 +1,7 @@
 const MEDICINE_DATA = [
-  // --- FEVER, PAIN & HEADACHE ---
+  // ==========================================
+  // 1. FEVER, PAIN & INFLAMMATION
+  // ==========================================
   {
     "id": "paracetamol_500",
     "generic_name": "Paracetamol",
@@ -68,8 +70,27 @@ const MEDICINE_DATA = [
     "warning": "Do not apply on broken skin.",
     "symptoms": ["body pain", "joint pain", "muscle pain", "swelling", "injury"]
   },
+  {
+    "id": "tramadol_50",
+    "generic_name": "Tramadol",
+    "brand_names": ["Ultracet", "Tramal"],
+    "category": "Pain Relief",
+    "form": "Tablet",
+    "strength": "50mg",
+    "rx_required": true,
+    "price_inr": "60-100",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet every 6 hours if severe pain",
+    "dosage_child": "Not recommended",
+    "max_daily": "400mg/day",
+    "natural_aid": "Rest",
+    "warning": "Prescription only. Can cause dizziness and dependence.",
+    "symptoms": ["severe pain", "injury", "back pain"]
+  },
 
-  // --- COLD, COUGH & ALLERGY ---
+  // ==========================================
+  // 2. COLD, COUGH & ALLERGY
+  // ==========================================
   {
     "id": "cetirizine_10",
     "generic_name": "Cetirizine",
@@ -86,6 +107,40 @@ const MEDICINE_DATA = [
     "natural_aid": "Steam, warm fluids",
     "warning": "Causes drowsiness. Avoid driving.",
     "symptoms": ["cold", "sneeze", "allergy", "skin itching", "swelling"]
+  },
+  {
+    "id": "levocetirizine_5",
+    "generic_name": "Levocetirizine",
+    "brand_names": ["Levocet", "Xyzal"],
+    "category": "Allergy",
+    "form": "Tablet",
+    "strength": "5mg",
+    "rx_required": false,
+    "price_inr": "30-50",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet at night",
+    "dosage_child": "Consult doctor",
+    "max_daily": "Once daily",
+    "natural_aid": "Steam, warm fluids",
+    "warning": "May cause mild drowsiness.",
+    "symptoms": ["allergy", "sneeze", "runny nose", "skin itching"]
+  },
+  {
+    "id": "fexofenadine_120",
+    "generic_name": "Fexofenadine",
+    "brand_names": ["Allegra", "Telfast"],
+    "category": "Allergy",
+    "form": "Tablet",
+    "strength": "120mg",
+    "rx_required": false,
+    "price_inr": "80-120",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet once daily",
+    "dosage_child": "Consult pediatrician",
+    "max_daily": "Once daily",
+    "natural_aid": "Warm water",
+    "warning": "Non-drowsy antihistamine. Avoid taking with fruit juices.",
+    "symptoms": ["allergy", "sneeze", "runny nose", "skin rash"]
   },
   {
     "id": "dextromethorphan_syrup",
@@ -125,8 +180,27 @@ const MEDICINE_DATA = [
     "warning": "Do not use for dry cough. Helps clear phlegm.",
     "symptoms": ["wet cough", "phlegm", "cough"]
   },
+  {
+    "id": "montelukast_10",
+    "generic_name": "Montelukast",
+    "brand_names": ["Montair", "Montek"],
+    "category": "Respiratory",
+    "form": "Tablet",
+    "strength": "10mg",
+    "rx_required": true,
+    "price_inr": "100-150",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet at night",
+    "dosage_child": "Consult doctor",
+    "max_daily": "Once daily",
+    "natural_aid": "Avoid allergens",
+    "warning": "Used for asthma and allergic rhinitis. Needs prescription.",
+    "symptoms": ["asthma", "breathing", "allergy", "cold"]
+  },
 
-  // --- STOMACH, ACIDITY & VOMITING ---
+  // ==========================================
+  // 3. STOMACH, ACIDITY & DIGESTION
+  // ==========================================
   {
     "id": "pantoprazole_40",
     "generic_name": "Pantoprazole",
@@ -143,6 +217,23 @@ const MEDICINE_DATA = [
     "natural_aid": "Banana, coconut water, avoid spicy food",
     "warning": "Long-term use needs doctor monitoring.",
     "symptoms": ["stomach ache", "acidity", "gas", "heartburn", "no hunger"]
+  },
+  {
+    "id": "omeprazole_20",
+    "generic_name": "Omeprazole",
+    "brand_names": ["Omez", "Ocid"],
+    "category": "Acidity",
+    "form": "Tablet",
+    "strength": "20mg",
+    "rx_required": false,
+    "price_inr": "20-50",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet empty stomach in morning",
+    "dosage_child": "Consult doctor",
+    "max_daily": "Once daily",
+    "natural_aid": "Cold milk",
+    "warning": "Do not crush or chew the tablet.",
+    "symptoms": ["acidity", "heartburn", "stomach ache", "gas"]
   },
   {
     "id": "drotin_40",
@@ -179,6 +270,23 @@ const MEDICINE_DATA = [
     "symptoms": ["vomiting", "nausea", "throwing up"]
   },
   {
+    "id": "domperidone_10",
+    "generic_name": "Domperidone",
+    "brand_names": ["Domstal", "Vomistop"],
+    "category": "Anti-vomiting",
+    "form": "Tablet",
+    "strength": "10mg",
+    "rx_required": false,
+    "price_inr": "30-50",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet 15-30 mins before meals",
+    "dosage_child": "Consult doctor",
+    "max_daily": "3 times daily",
+    "natural_aid": "Small frequent meals",
+    "warning": "Do not take for long periods without doctor advice.",
+    "symptoms": ["vomiting", "nausea", "bloating", "stomach ache"]
+  },
+  {
     "id": "digene_gel",
     "generic_name": "Antacid Gel",
     "brand_names": ["Digene", "Gelusil"],
@@ -197,8 +305,257 @@ const MEDICINE_DATA = [
     "warning": "Provides immediate but temporary relief.",
     "symptoms": ["acidity", "gas", "heartburn", "stomach ache"]
   },
+  {
+    "id": "isabgol_husk",
+    "generic_name": "Isabgol (Psyllium Husk)",
+    "brand_names": ["Dabur Isabgol", "Sat-Isabgol"],
+    "category": "Digestion",
+    "form": "Powder",
+    "strength": "100g",
+    "rx_required": false,
+    "price_inr": "100-180",
+    "price_unit": "per pack",
+    "dosage_adult": "1-2 teaspoons with warm water/milk at night",
+    "dosage_child": "Consult doctor",
+    "max_daily": "2 times daily",
+    "natural_aid": "Plenty of water",
+    "warning": "Drink plenty of water after taking to avoid bloating.",
+    "symptoms": ["constipation", "stomach ache", "digestion"]
+  },
 
-  // --- EYE, EAR & DENTAL ---
+  // ==========================================
+  // 4. ANTIBIOTICS & ANTIFUNGALS
+  // ==========================================
+  {
+    "id": "amoxicillin_500",
+    "generic_name": "Amoxicillin",
+    "brand_names": ["Mox", "Novamox"],
+    "category": "Antibiotic",
+    "form": "Capsule",
+    "strength": "500mg",
+    "rx_required": true,
+    "price_inr": "60-100",
+    "price_unit": "per strip",
+    "dosage_adult": "1 capsule every 8 hours",
+    "dosage_child": "Consult pediatrician",
+    "max_daily": "1500mg/day",
+    "natural_aid": "Probiotics (curd)",
+    "warning": "Complete the full course. Do not stop early.",
+    "symptoms": ["infection", "fever", "throat infection", "dental infection"]
+  },
+  {
+    "id": "azithromycin_500",
+    "generic_name": "Azithromycin",
+    "brand_names": ["Azee", "Azax"],
+    "category": "Antibiotic",
+    "form": "Tablet",
+    "strength": "500mg",
+    "rx_required": true,
+    "price_inr": "80-150",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet daily for 3-5 days",
+    "dosage_child": "Consult pediatrician",
+    "max_daily": "500mg/day",
+    "natural_aid": "Rest, hydration",
+    "warning": "Prescription only. Usually taken for 3 days.",
+    "symptoms": ["infection", "cough", "fever", "throat infection"]
+  },
+  {
+    "id": "ciprofloxacin_500",
+    "generic_name": "Ciprofloxacin",
+    "brand_names": ["Ciplox", "Cifran"],
+    "category": "Antibiotic",
+    "form": "Tablet",
+    "strength": "500mg",
+    "rx_required": true,
+    "price_inr": "40-80",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet twice daily",
+    "dosage_child": "Not recommended",
+    "max_daily": "1000mg/day",
+    "natural_aid": "Plenty of water",
+    "warning": "Avoid taking with milk or antacids.",
+    "symptoms": ["uti", "infection", "stomach infection", "diarrhea"]
+  },
+  {
+    "id": "cefixime_200",
+    "generic_name": "Cefixime",
+    "brand_names": ["Taxim-O", "Cefix"],
+    "category": "Antibiotic",
+    "form": "Tablet",
+    "strength": "200mg",
+    "rx_required": true,
+    "price_inr": "100-180",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet twice daily",
+    "dosage_child": "Consult pediatrician",
+    "max_daily": "400mg/day",
+    "natural_aid": "Rest",
+    "warning": "Prescription only. Complete the course.",
+    "symptoms": ["typhoid", "infection", "fever", "uti"]
+  },
+  {
+    "id": "doxycycline_100",
+    "generic_name": "Doxycycline",
+    "brand_names": ["Doxicip", "Doxy-1"],
+    "category": "Antibiotic",
+    "form": "Capsule",
+    "strength": "100mg",
+    "rx_required": true,
+    "price_inr": "40-80",
+    "price_unit": "per strip",
+    "dosage_adult": "1 capsule twice daily",
+    "dosage_child": "Not recommended under 8 years",
+    "max_daily": "200mg/day",
+    "natural_aid": "Sun protection",
+    "warning": "Causes sun sensitivity. Use sunscreen.",
+    "symptoms": ["acne", "infection", "malaria", "skin issues"]
+  },
+  {
+    "id": "fluconazole_150",
+    "generic_name": "Fluconazole",
+    "brand_names": ["Forcan", "Zocon"],
+    "category": "Antifungal",
+    "form": "Tablet",
+    "strength": "150mg",
+    "rx_required": true,
+    "price_inr": "30-60",
+    "price_unit": "per tablet",
+    "dosage_adult": "1 tablet as directed by doctor",
+    "dosage_child": "Consult doctor",
+    "max_daily": "Single dose usually",
+    "natural_aid": "Keep area dry",
+    "warning": "Prescription only. For fungal infections.",
+    "symptoms": ["fungal infection", "skin issues", "yeast infection"]
+  },
+  {
+    "id": "clotrimazole_cream",
+    "generic_name": "Clotrimazole",
+    "brand_names": ["Candid", "Canesten"],
+    "category": "Skin Care",
+    "form": "Cream",
+    "strength": "1%",
+    "rx_required": false,
+    "price_inr": "40-70",
+    "price_unit": "per tube",
+    "dosage_adult": "Apply to affected area twice daily",
+    "dosage_child": "Consult doctor",
+    "max_daily": "2 times",
+    "natural_aid": "Keep area dry and clean",
+    "warning": "For fungal infections only (ringworm, itching).",
+    "symptoms": ["skin issues", "fungal infection", "itching", "rash"]
+  },
+
+  // ==========================================
+  // 5. DIABETES & HEART
+  // ==========================================
+  {
+    "id": "metformin_500",
+    "generic_name": "Metformin",
+    "brand_names": ["Glycomet", "Gluformin"],
+    "category": "Diabetes",
+    "form": "Tablet",
+    "strength": "500mg",
+    "rx_required": true,
+    "price_inr": "20-50",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet twice daily after meals",
+    "dosage_child": "Consult doctor",
+    "max_daily": "2000mg/day",
+    "natural_aid": "Low sugar diet, exercise",
+    "warning": "Take after food to avoid stomach upset.",
+    "symptoms": ["diabetes", "high sugar"]
+  },
+  {
+    "id": "glimepiride_1",
+    "generic_name": "Glimepiride",
+    "brand_names": ["Amaryl", "Glimestar"],
+    "category": "Diabetes",
+    "form": "Tablet",
+    "strength": "1mg",
+    "rx_required": true,
+    "price_inr": "40-80",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet before breakfast",
+    "dosage_child": "Not recommended",
+    "max_daily": "As prescribed",
+    "natural_aid": "Regular meals",
+    "warning": "Risk of low blood sugar if meal is skipped.",
+    "symptoms": ["diabetes", "high sugar"]
+  },
+  {
+    "id": "insulin_injection",
+    "generic_name": "Human Insulin",
+    "brand_names": ["Humulin", "Actrapid"],
+    "category": "Diabetes",
+    "form": "Injection",
+    "strength": "100 IU/ml",
+    "route": "Subcutaneous",
+    "rx_required": true,
+    "price_inr": "150-300",
+    "price_unit": "per vial",
+    "dosage_adult": "As prescribed by doctor based on blood sugar",
+    "dosage_child": "Doctor only",
+    "max_daily": "As prescribed",
+    "natural_aid": "Diet control, exercise",
+    "warning": "Keep refrigerated. Risk of hypoglycemia.",
+    "symptoms": ["diabetes", "high sugar"]
+  },
+  {
+    "id": "amlodipine_5",
+    "generic_name": "Amlodipine",
+    "brand_names": ["Amlokind", "Stamlo"],
+    "category": "Blood Pressure",
+    "form": "Tablet",
+    "strength": "5mg",
+    "rx_required": true,
+    "price_inr": "15-40",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet once daily",
+    "dosage_child": "Consult doctor",
+    "max_daily": "Once daily",
+    "natural_aid": "Low salt diet",
+    "warning": "Do not stop suddenly. Monitor BP.",
+    "symptoms": ["high bp", "blood pressure", "hypertension"]
+  },
+  {
+    "id": "telmisartan_40",
+    "generic_name": "Telmisartan",
+    "brand_names": ["Telma", "Telsartan"],
+    "category": "Blood Pressure",
+    "form": "Tablet",
+    "strength": "40mg",
+    "rx_required": true,
+    "price_inr": "40-80",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet once daily",
+    "dosage_child": "Not recommended",
+    "max_daily": "Once daily",
+    "natural_aid": "Exercise, low salt",
+    "warning": "Prescription only.",
+    "symptoms": ["high bp", "blood pressure", "hypertension"]
+  },
+  {
+    "id": "atorvastatin_10",
+    "generic_name": "Atorvastatin",
+    "brand_names": ["Atorva", "Lipitor"],
+    "category": "Cholesterol",
+    "form": "Tablet",
+    "strength": "10mg",
+    "rx_required": true,
+    "price_inr": "30-70",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet at night",
+    "dosage_child": "Not recommended",
+    "max_daily": "Once daily",
+    "natural_aid": "Low fat diet, exercise",
+    "warning": "Report muscle pain to doctor.",
+    "symptoms": ["cholesterol", "high lipid", "heart"]
+  },
+
+  // ==========================================
+  // 6. EYE, EAR & DENTAL
+  // ==========================================
   {
     "id": "ciprofloxacin_ear_drops",
     "generic_name": "Ciprofloxacin Ear Drops",
@@ -253,7 +610,9 @@ const MEDICINE_DATA = [
     "symptoms": ["toothache", "gum pain"]
   },
 
-  // --- WEAKNESS, VITAMINS & APPETITE ---
+  // ==========================================
+  // 7. SUPPLEMENTS & VITAMINS
+  // ==========================================
   {
     "id": "multivitamin_iron",
     "generic_name": "Iron & Folic Acid",
@@ -270,6 +629,57 @@ const MEDICINE_DATA = [
     "natural_aid": "Eat green leafy vegetables, dates",
     "warning": "May cause black stools. Avoid taking with milk/tea.",
     "symptoms": ["weakness", "fatigue", "periods issues", "hair loss", "dizziness"]
+  },
+  {
+    "id": "calcium_d3",
+    "generic_name": "Calcium & Vitamin D3",
+    "brand_names": ["Shelcal", "Calcimax"],
+    "category": "Supplements",
+    "form": "Tablet",
+    "strength": "500mg",
+    "rx_required": false,
+    "price_inr": "80-150",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet daily after food",
+    "dosage_child": "Consult doctor",
+    "max_daily": "Once daily",
+    "natural_aid": "Sunlight, milk",
+    "warning": "Do not take on an empty stomach.",
+    "symptoms": ["weakness", "bone pain", "joint pain", "fatigue"]
+  },
+  {
+    "id": "biotin_tablet",
+    "generic_name": "Biotin",
+    "brand_names": ["Cernitol", "Biotin 10mg"],
+    "category": "Skin & Hair",
+    "form": "Tablet",
+    "strength": "10mg",
+    "rx_required": false,
+    "price_inr": "100-200",
+    "price_unit": "per strip",
+    "dosage_adult": "1 tablet daily after food",
+    "dosage_child": "Not recommended",
+    "max_daily": "Once daily",
+    "natural_aid": "Eggs, nuts, seeds",
+    "warning": "Takes 3-6 months to show results for hair/nails.",
+    "symptoms": ["hair loss", "nail color", "weak nails", "brittle hair"]
+  },
+  {
+    "id": "ors_powder",
+    "generic_name": "Oral Rehydration Salts",
+    "brand_names": ["Electral", "ORS"],
+    "category": "Hydration",
+    "form": "Powder",
+    "strength": "21.8g",
+    "rx_required": false,
+    "price_inr": "20-30",
+    "price_unit": "per sachet",
+    "dosage_adult": "1 sachet dissolved in 1L water",
+    "dosage_child": "Small sips throughout the day",
+    "max_daily": "As needed",
+    "natural_aid": "Coconut water, lemon water",
+    "warning": "Do not add extra sugar or salt.",
+    "symptoms": ["vomiting", "diarrhea", "weakness", "dehydration"]
   },
   {
     "id": "cyproheptadine_syrup",
@@ -290,42 +700,10 @@ const MEDICINE_DATA = [
     "warning": "Causes drowsiness and weight gain.",
     "symptoms": ["no hunger", "weight loss", "weakness", "loss of appetite"]
   },
-  {
-    "id": "biotin_tablet",
-    "generic_name": "Biotin",
-    "brand_names": ["Cernitol", "Biotin 10mg"],
-    "category": "Skin & Hair",
-    "form": "Tablet",
-    "strength": "10mg",
-    "rx_required": false,
-    "price_inr": "100-200",
-    "price_unit": "per strip",
-    "dosage_adult": "1 tablet daily after food",
-    "dosage_child": "Not recommended",
-    "max_daily": "Once daily",
-    "natural_aid": "Eggs, nuts, seeds",
-    "warning": "Takes 3-6 months to show results for hair/nails.",
-    "symptoms": ["hair loss", "nail color", "weak nails", "brittle hair"]
-  },
 
-  // --- SKIN, PERIODS & INJURIES ---
-  {
-    "id": "clotrimazole_cream",
-    "generic_name": "Clotrimazole",
-    "brand_names": ["Candid", "Canesten"],
-    "category": "Skin Care",
-    "form": "Cream",
-    "strength": "1%",
-    "rx_required": false,
-    "price_inr": "40-70",
-    "price_unit": "per tube",
-    "dosage_adult": "Apply to affected area twice daily",
-    "dosage_child": "Consult doctor",
-    "max_daily": "2 times",
-    "natural_aid": "Keep area dry and clean",
-    "warning": "For fungal infections only (ringworm, itching).",
-    "symptoms": ["skin issues", "fungal infection", "itching", "rash"]
-  },
+  // ==========================================
+  // 8. SKIN, FIRST AID & DEVICES
+  // ==========================================
   {
     "id": "mefenamic_acid_500",
     "generic_name": "Mefenamic Acid",
@@ -361,6 +739,23 @@ const MEDICINE_DATA = [
     "symptoms": ["injury", "cuts", "wound", "swelling", "skin issues"]
   },
   {
+    "id": "mupirocin_cream",
+    "generic_name": "Mupirocin",
+    "brand_names": ["T-Bact", "Bactroban"],
+    "category": "Skin Care",
+    "form": "Cream",
+    "strength": "2%",
+    "rx_required": false,
+    "price_inr": "80-120",
+    "price_unit": "per tube",
+    "dosage_adult": "Apply thin layer to affected area 3 times daily",
+    "dosage_child": "Consult doctor",
+    "max_daily": "3 times",
+    "natural_aid": "Keep area clean",
+    "warning": "For bacterial skin infections only.",
+    "symptoms": ["skin infection", "cuts", "wound", "skin issues"]
+  },
+  {
     "id": "crepe_bandage",
     "generic_name": "Crepe Bandage",
     "brand_names": ["Dynamic", "Flamingo"],
@@ -379,24 +774,6 @@ const MEDICINE_DATA = [
     "natural_aid": "Elevate the injured area",
     "warning": "Do not wrap too tight. Can cut off blood flow.",
     "symptoms": ["injury", "swelling", "joint pain", "sprain"]
-  },
-  {
-    "id": "insulin_injection",
-    "generic_name": "Human Insulin",
-    "brand_names": ["Humulin", "Actrapid"],
-    "category": "Diabetes",
-    "form": "Injection",
-    "strength": "100 IU/ml",
-    "route": "Subcutaneous",
-    "rx_required": true,
-    "price_inr": "150-300",
-    "price_unit": "per vial",
-    "dosage_adult": "As prescribed by doctor based on blood sugar",
-    "dosage_child": "Doctor only",
-    "max_daily": "As prescribed",
-    "natural_aid": "Diet control, exercise",
-    "warning": "Keep refrigerated. Risk of hypoglycemia.",
-    "symptoms": ["diabetes", "high sugar"]
   },
   {
     "id": "insulin_syringe_1ml",
