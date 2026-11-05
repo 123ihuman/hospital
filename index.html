@@ -443,19 +443,6 @@ function analyzeSymptoms() {
       </div>`;
   });
 
-  reportHTML += `
-      <hr style="margin:20px 0;">
-      <div style="background:#e7f5ff; padding:15px; border-radius:8px; border:1px solid #00b4d8;">
-        <h4>🩺 Doctor Verification Checklist</h4>
-        <p style="font-size:13px;">Show this report to a <strong>pharmacist or MBBS doctor</strong> and ask:</p>
-        <ul style="font-size:13px; margin-left:20px; margin-top:5px;">
-          <li>"Is this safe for my age and weight?"</li>
-          <li>"Does this interact with my other medicines?"</li>
-          <li>"Am I allergic to any ingredient?"</li>
-        </ul>
-        <p style="font-size:12px; color:#666; margin-top:10px;"><em>Doctor's Signature: ______________________</em></p>
-      </div>
-      </div></div>`;
 
   document.getElementById('reportContent').innerHTML = reportHTML;
   switchTab('report');
