@@ -276,6 +276,9 @@ function analyzeSymptoms() {
     "high temp": "fever",
     "loose motion": "stomach ache",
     "diarrhea": "stomach ache",
+    "stomach pain": "stomach ache",
+    "pain in stomach": "stomach ache",
+    "abdomen pain": "stomach ache",
     "throwing up": "vomiting",
     "puking": "vomiting",
     "nausea": "vomiting",
@@ -323,11 +326,37 @@ function analyzeSymptoms() {
   let detectedSymptoms = Array.from(matchedSymptoms);
   let reportHTML = "";
 
+  // --- SUPPORTIVE CARE & DIET DATABASE ---
+  const careAdvice = {
+    "fever": { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", temp: "Use a damp cloth on forehead if very hot. Keep room ventilated.", how: "Take medicines with normal room temperature water after food." },
+    "vomiting": { eat: "BRAT diet (Banana, Rice, Applesauce, Toast), plain curd, ORS.", avoid: "Spicy, oily, or heavy dairy foods.", herbs: "Ginger tea, mint leaves, lemon water.", temp: "Sip fluids slowly and frequently.", how: "Take anti-vomiting tablet 30 mins before eating with a sip of water." },
+    "stomach ache": { eat: "Khichdi, curd rice, bananas, coconut water.", avoid: "Tea, coffee, spicy food, outside food.", herbs: "Ajwain (carom seed) water, fennel seeds (saunf).", temp: "Place a warm water bag on the stomach.", how: "Take medicines with warm water, strictly after food." },
+    "cough": { eat: "Warm water, honey, turmeric milk, soups.", avoid: "Cold water, ice cream, sour foods.", herbs: "Steam inhalation, ginger, Tulsi, Mulethi.", temp: "Avoid cold air and AC.", how: "Take syrup with warm water. Do not drink water immediately after." },
+    "cold": { eat: "Warm soups, ginger tea, turmeric milk.", avoid: "Cold foods, yogurt, bananas.", herbs: "Steam, Tulsi leaves, black pepper.", temp: "Keep yourself warm.", how: "Antihistamines cause drowsiness, take them with water at night." },
+    "body pain": { eat: "Protein-rich foods, warm water.", avoid: "Heavy physical exertion.", herbs: "Warm compress on joints.", temp: "Keep body warm.", how: "Take painkillers after a full meal with water." },
+    "headache": { eat: "Hydrate well, drink coconut water or lemon water.", avoid: "Loud noises, bright screens, skipping meals.", herbs: "Peppermint oil on temples.", temp: "Rest in a dark, quiet room.", how: "Take medicine with water. Do not take on an empty stomach." }
+  };
+
   // Create the paragraph summary
-  let summaryParagraph = `Based on the description you provided ("<em>${originalInput}</em>"), it appears you are experiencing <strong>${detectedSymptoms.join(", ")}</strong>. Please review the suggested medicines below.`;
-  if (isChild) {
-    summaryParagraph += ` Since the patient is under 12, pediatric dosages are shown in yellow.`;
-  }
+  let summaryParagraph = `Hello <strong>${name}</strong>. I understand you are experiencing <strong>${detectedSymptoms.join(", ")}</strong>. Please do not panic. Your symptoms are common and manageable. Below is a complete treatment plan including medicines, supportive diet, and natural care. Please follow the dosage strictly.`;
+
+  // Create the Supportive Care HTML
+  let careHTML = "";
+  detectedSymptoms.forEach(sym => {
+    let advice = careAdvice[sym] || careAdvice["fever"]; // Fallback to general advice
+    careHTML += `
+      <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #1b5e20;">
+        <h4 style="margin-bottom: 8px;">💚 Supportive Care for ${sym.toUpperCase()}</h4>
+        <ul style="margin-left: 20px; line-height: 1.6;">
+          <li>🍲 <strong>Food to Eat:</strong> ${advice.eat}</li>
+          <li>🚫 <strong>Food to Avoid:</strong> ${advice.avoid}</li>
+          <li>🌿 <strong>Natural Herbs/Remedies:</strong> ${advice.herbs}</li>
+          <li>🌡️ <strong>Care & Temperature:</strong> ${advice.temp}</li>
+          <li>💧 <strong>How to take medicine:</strong> ${advice.how}</li>
+        </ul>
+      </div>
+    `;
+  });
 
   reportHTML += `
     <div class="report-card">
@@ -341,9 +370,12 @@ function analyzeSymptoms() {
         
         <!-- THE PARAGRAPH SUMMARY -->
         <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; line-height: 1.5; color: #0b3d91;">
-          <strong>🤖 AI Analysis Summary:</strong><br>
+          <strong>🤖 AI Doctor's Reassurance:</strong><br>
           ${summaryParagraph}
         </div>
+
+        <!-- THE NEW SUPPORTIVE CARE BLOCK -->
+        ${careHTML}
 
         <hr style="margin:15px 0; border-top:1px dashed #ccc;">
   `;
@@ -363,6 +395,10 @@ function analyzeSymptoms() {
     let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺' }[med.form] || '💊';
     let rxBadge = med.rx_required ? '<span style="background:#d90429; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">Rx Required</span>' : '';
     
+    // Figure out which symptom this medicine treats
+    let treats = med.symptoms.filter(s => detectedSymptoms.includes(s));
+    let treatsText = treats.length > 0 ? `<span style="font-size:12px; color:#0077b6; font-weight:bold;">(For: ${treats.join(', ')})</span>` : '';
+
     let dosageInfo = med.dosage_adult;
     let extraWarning = "";
 
@@ -380,7 +416,7 @@ function analyzeSymptoms() {
 
     reportHTML += `
       <div style="margin-top:20px; background:#f8f9fa; padding:15px; border-radius:8px; border-left: 4px solid var(--secondary);">
-        <h4 style="color:var(--primary); margin-bottom:10px;">${icon} ${med.generic_name} (${med.strength}) ${rxBadge}</h4>
+        <h4 style="color:var(--primary); margin-bottom:10px;">${icon} ${med.generic_name} (${med.strength}) ${rxBadge} <br><span style="font-size:13px; font-weight:normal;">${treatsText}</span></h4>
         <p><strong>Brands:</strong> ${med.brand_names.join(', ')}</p>
         <p><strong>Price:</strong> <span class="price-tag">₹${med.price_inr} ${med.price_unit}</span></p>
         <div class="dosage-line"><strong>💊 Dose:</strong> ${dosageInfo}</div>
