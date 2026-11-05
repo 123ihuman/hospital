@@ -122,7 +122,7 @@
     <span onclick="switchTab('input')" class="active">Symptom Checker</span>
     <span onclick="switchTab('info')">Medicine Info</span>
     <span onclick="switchTab('report')">Report Card</span>
-    <!-- NEW GOOGLE LENS BUTTON -->
+    <!-- GOOGLE LENS BUTTON -->
     <span onclick="window.open('https://lens.google.com/', '_blank')" style="color: #ffeb3b; font-weight: bold; border-left: 1px solid #fff; padding-left: 10px;">📷 Google Lens</span>
   </div>
 </div>
@@ -160,9 +160,9 @@
     </div>
 
     <label>Type Your Issues (Use commas, spaces, or full sentences)</label>
-    <textarea id="pSymptoms" placeholder="Example: Mujhe 2 din se bukhar nahi hai sirf jhukham hai"></textarea>
+    <textarea id="pSymptoms" placeholder="Example: FEVER"></textarea>
     <p style="font-size:12px; color:#666; margin-top:-10px; margin-bottom:15px;">
-      <em>Tip: You can type full sentences in Hindi, English, or Hinglish. The AI will extract the symptoms automatically.</em>
+      <em>Tip: You can type full sentences in Hindi, English, or Hinglish. The doctors will extract the symptoms automatically.</em>
     </p>
 
     <button onclick="analyzeSymptoms()">🔍 Analyze & Generate Report</button>
@@ -229,14 +229,14 @@
 <script src="medicines.js"></script>
 
 <script>
-// --- GROQ API CONFIGURATION (PASTE YOUR KEYS HERE) ---
+// --- GROQ API CONFIGURATION ---
 const GROQ_API_KEYS = [
-  "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", 
-  "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", 
-  "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",
-  "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"
+  "gsk_YOUR_FIRST_KEY_HERE", 
+  "gsk_YOUR_SECOND_KEY_HERE", 
+  "gsk_YOUR_THIRD_KEY_HERE",
+  "gsk_YOUR_FOURTH_KEY_HERE"
 ];
-const GROQ_MODEL = "llama3-8b-8192"; // Fast and free on Groq
+const GROQ_MODEL = "llama3-8b-8192"; 
 let currentKeyIndex = 0;
 
 // --- TAB SWITCHING LOGIC ---
@@ -262,6 +262,9 @@ function analyzeSymptoms() {
   const age = parseInt(document.getElementById('pAge').value);
   const gender = document.getElementById('pGender').value;
   const duration = document.getElementById('pDuration').value || "Not specified";
+  
+  // --- JOINT DOCTOR PERSONA ---
+  const doctorsText = "👩‍⚕️ Dr. Neha & 👨‍⚕️ Dr. Adarsh";
   
   let originalInput = document.getElementById('pSymptoms').value;
   let cleanInput = originalInput.toLowerCase().replace(/[^a-z0-9\u0900-\u097F\s]/g, ' ');
@@ -369,9 +372,9 @@ function analyzeSymptoms() {
     "injury": { eat: "Protein-rich foods for healing.", avoid: "Moving the injured part too much.", herbs: "Turmeric milk (anti-inflammatory).", temp: "Ice pack for the first 24 hours, warm compress after.", how: "Take painkillers after meals." }
   };
 
-  let summaryParagraph = `Hello <strong>${name}</strong>. I understand you are experiencing <strong>${detectedSymptoms.join(", ")}</strong>. Please do not panic. Your symptoms are common and manageable. Below is a complete treatment plan including medicines, supportive diet, and natural care.`;
+  let summaryParagraph = `Hello <strong>${name}</strong>, we are ${doctorsText}. We understand you are experiencing <strong>${detectedSymptoms.join(", ")}</strong>. Please do not panic. Your symptoms are common and manageable. Below is a complete treatment plan including medicines, supportive diet, and natural care.`;
   if(firstAidHTML !== "") {
-      summaryParagraph = `Hello <strong>${name}</strong>. Based on your description, you have an injury. Please follow the <strong>First Aid steps immediately</strong> before taking any medicines. Do not panic.`;
+      summaryParagraph = `Hello <strong>${name}</strong>, we are ${doctorsText}. Based on your description, you have an injury. Please follow the <strong>First Aid steps immediately</strong> before taking any medicines. Do not panic.`;
   }
 
   let careHTML = "";
@@ -400,8 +403,8 @@ function analyzeSymptoms() {
         <p><strong>Patient:</strong> ${name} | <strong>Age:</strong> ${age} | <strong>Gender:</strong> ${gender}</p>
         <p><strong>Reported Issues:</strong> ${detectedSymptoms.join(", ")} (Duration: ${duration})</p>
         ${firstAidHTML}
-        <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; line-height: 1.5; color: #0b3d91;">
-          <strong>🤖 AI Doctor's Reassurance:</strong><br>${summaryParagraph}
+                <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 15px; line-height: 1.5; color: #0b3d91;">
+          <strong>${doctorsText}'s Advice:</strong><br>${summaryParagraph}
         </div>
         ${careHTML}
         <hr style="margin:15px 0; border-top:1px dashed #ccc;">`;
@@ -447,26 +450,24 @@ function analyzeSymptoms() {
   document.getElementById('reportContent').innerHTML = reportHTML;
   switchTab('report');
 }
--
+
 // --- GROQ API FETCH WITH DOCTOR PERSONA & OFFLINE FALLBACK ---
 async function fetchGroqResponse(originalInput, cacheKey) {
   document.getElementById('reportContent').innerHTML = `
     <div style="text-align: center; padding: 50px;">
-      <h3 style="color: var(--primary);">🩺 A doctor is reviewing your symptoms...</h3>
+      <h3 style="color: var(--primary);">🩺 The Medical Team is reviewing your symptoms...</h3>
       <p>Please wait a moment.</p>
     </div>`;
   switchTab('report');
 
-  // 1. Randomly Assign a Doctor Persona
-  const doctor = Math.random() > 0.5 
-    ? { name: "Dr. Neha", icon: "👩‍⚕️" } 
-    : { name: "Dr. Kartik", icon: "👨‍⚕️" };
+  // 1. Joint Doctor Persona
+  const doctorsText = "👩‍⚕️ Dr. Neha & 👨‍⚕️ Dr. Adarsh";
 
-  const systemPrompt = `You are ${doctor.name}, a kind, supportive, and experienced Indian doctor. 
+  const systemPrompt = `You are a medical team consisting of ${doctorsText}, kind, supportive, and experienced Indian doctors. 
   A patient has described their symptoms in English or Hinglish: "${originalInput}". 
   Respond in simple, supportive Hinglish (Hindi written in English letters). 
   Do NOT panic the patient. Structure your reply as a friendly doctor:
-  1. A reassuring opening paragraph (e.g., "${doctor.name} here. Aap ghabraiye mat...").
+  1. A reassuring opening paragraph (e.g., "We are ${doctorsText} here. Aap ghabraiye mat...").
   2. The likely issue and immediate home care (herbs, food, rest).
   3. 2-3 common generic medicines with basic dosage (e.g., "Dolo 650, 1 tablet after food").
   4. A strict warning: "Agar 2 din me aaram na mile, toh turant doctor se milein."
@@ -502,7 +503,7 @@ async function fetchGroqResponse(originalInput, cacheKey) {
         const aiHTML = `
           <div class="report-card" style="border: 2px solid #00b4d8;">
             <div class="report-header" style="background: #00b4d8;">
-              <h2 style="color:white; border:none; margin:0; padding:0;">${doctor.icon} ${doctor.name}'s Advice</h2>
+              <h2 style="color:white; border:none; margin:0; padding:0;">${doctorsText}'s Advice</h2>
             </div>
             <div class="report-body">
               <div style="background: #e7f5ff; padding: 15px; border-radius: 6px; font-size: 15px; line-height: 1.6; color: #0b3d91;">
@@ -542,24 +543,24 @@ async function fetchGroqResponse(originalInput, cacheKey) {
   // 2. THE UNBREAKABLE OFFLINE FALLBACK
   // If all keys fail or there is no internet, we NEVER deny help.
   console.log("All API keys exhausted or offline. Generating Offline Triage Report...");
-  generateOfflineFallback(originalInput, doctor);
+  generateOfflineFallback(originalInput, doctorsText);
 }
 
 // --- OFFLINE EMERGENCY TRIAGE FALLBACK ---
-function generateOfflineFallback(originalInput, doctor) {
+function generateOfflineFallback(originalInput, doctorsText) {
   // We reuse the local parser logic to see if we can grab anything
   let rawSymptoms = originalInput.toLowerCase();
   
   let fallbackHTML = `
     <div class="report-card" style="border: 2px solid var(--warning);">
       <div class="report-header" style="background: var(--warning); color: #333;">
-        <h2 style="color:#333; border:none; margin:0; padding:0;">${doctor.icon} ${doctor.name}'s Offline Triage</h2>
+        <h2 style="color:#333; border:none; margin:0; padding:0;">${doctorsText}'s Offline Triage</h2>
         <span>Offline Mode</span>
       </div>
       <div class="report-body">
         
         <div style="background: #fff3cd; border-left: 4px solid var(--warning); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
-          <strong>⚠️ Internet/API Unavailable:</strong> Our AI doctor cannot be reached right now. However, we will <strong>never leave you without help</strong>. 
+          <strong>⚠️ Internet/API Unavailable:</strong> Our AI doctors cannot be reached right now. However, we will <strong>never leave you without help</strong>. 
           Please follow the general supportive care below while trying to connect to a doctor.
         </div>
 
@@ -585,7 +586,7 @@ function generateOfflineFallback(originalInput, doctor) {
         <hr style="margin:20px 0;">
         
         <p style="font-size: 13px; color: #666; text-align: center;">
-          <em>We apologize for the inconvenience. Please try reconnecting your internet to get a personalized prescription from ${doctor.name}.</em>
+          <em>We apologize for the inconvenience. Please try reconnecting your internet to get a personalized prescription from ${doctorsText}.</em>
         </p>
         <button onclick="switchTab('input')" style="margin-top: 15px; background: var(--primary);">Go Back & Try Again</button>
       </div>
@@ -594,6 +595,7 @@ function generateOfflineFallback(originalInput, doctor) {
 
   document.getElementById('reportContent').innerHTML = fallbackHTML;
 }
+
 // --- DYNAMIC SEARCH & FILTER LOGIC ---
 function renderMedicineList() {
   const query = document.getElementById('searchMed').value.toLowerCase();
