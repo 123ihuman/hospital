@@ -546,8 +546,9 @@ function handleFileUpload(event) {
 async function analyzeImage(base64Image) {
   const statusDiv = document.getElementById('ai-vision-status');
   statusDiv.style.display = 'block';
-  statusDiv.innerText = "🤖 AI is analyzing your photo... Please wait.";
+  statusDiv.innerHTML = "🤖 AI is analyzing your photo... Please wait.";
   const apiKey = GROQ_API_KEYS[0];
+  
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -561,17 +562,36 @@ async function analyzeImage(base64Image) {
         max_tokens: 100
       })
     });
+    
     if (response.ok) {
       const data = await response.json();
       const aiKeywords = data.choices[0].message.content.trim();
       document.getElementById('pSymptoms').value += (document.getElementById('pSymptoms').value ? " " : "") + aiKeywords;
-      statusDiv.innerText = "✅ Photo analyzed! Added keywords: " + aiKeywords;
+      statusDiv.innerHTML = "✅ Photo analyzed! Added: <strong>" + aiKeywords + "</strong>";
     } else {
-      statusDiv.innerText = "⚠️ AI Vision failed. Please type symptoms manually.";
+      showVisualFallback(statusDiv);
     }
   } catch (err) {
-    statusDiv.innerText = "⚠️ Network error. Please type symptoms manually.";
+    showVisualFallback(statusDiv);
   }
+}
+
+// 🛡️ THE ULTIMATE FALLBACK: If AI fails or quota is reached, let the user tap what they see!
+function showVisualFallback(statusDiv) {
+  statusDiv.innerHTML = `
+    ⚠️ <strong>AI is currently busy.</strong> No problem! Tap what you see in your photo:
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+      <button onclick="addQuickSymptom('red rash, itching, fungal infection')" style="background:#ffebee; color:#c62828; border:1px solid #c62828; padding:8px 12px; border-radius:20px; cursor:pointer; font-size:13px;">🔴 Red Rash / Itching</button>
+      <button onclick="addQuickSymptom('cut, wound, bleeding, injury')" style="background:#e3f2fd; color:#1565c0; border:1px solid #1565c0; padding:8px 12px; border-radius:20px; cursor:pointer; font-size:13px;">🩹 Cut / Wound</button>
+      <button onclick="addQuickSymptom('burn, blister, red skin')" style="background:#fff3e0; color:#e65100; border:1px solid #e65100; padding:8px 12px; border-radius:20px; cursor:pointer; font-size:13px;">🔥 Burn / Blister</button>
+      <button onclick="addQuickSymptom('swelling, bruise, sprain, pain')" style="background:#f3e5f5; color:#6a1b9a; border:1px solid #6a1b9a; padding:8px 12px; border-radius:20px; cursor:pointer; font-size:13px;">🟣 Swelling / Bruise</button>
+    </div>
+  `;
+}
+
+function addQuickSymptom(keywords) {
+  document.getElementById('pSymptoms').value += (document.getElementById('pSymptoms').value ? " " : "") + keywords;
+  document.getElementById('ai-vision-status').innerHTML = "✅ Added: <strong>" + keywords + "</strong>. Now click 'Analyze & Generate Report'!";
 }
 
 window.onload = function() { if (typeof MEDICINE_DATA !== 'undefined') renderMedicineList(); };
