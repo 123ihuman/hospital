@@ -1150,7 +1150,7 @@ const MEDICINE_DATA = [
     "price_inr": "70-110",
     "price_unit": "per bottle",
     "dosage_adult": "Apply to clean, dry affected area (groin, underarms, feet) 2-3 times daily.",
-    " for infants.",
+    //
     "max_daily": "3 times daily",
     "warning": "Do not inhale the powder. Keep away from eyes. For fungal infections and sweat rashes.",
     "symptoms": ["skin itching", "fungal infection", "sweat rash", "jock itch", "foot odor"]
