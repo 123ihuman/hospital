@@ -71,6 +71,17 @@
 </style>
 </head>
 <body>
+  <!-- FIRST RUN LANGUAGE POPUP -->
+<div id="lang-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:30px; border-radius:15px; text-align:center; max-width:400px; width:90%; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+    <h2 style="color:#0b3d91; margin-bottom:10px;">🙏 नमस्ते / Welcome!</h2>
+    <p style="font-size:16px; margin-bottom:25px; color:#555;">Please choose your preferred language to continue.<br>कृपया जारी रखने के लिए अपनी भाषा चुनें।</p>
+    <div style="display:flex; flex-direction:column; gap:15px;">
+      <button onclick="selectLanguage('hi')" style="background:#0b3d91; color:white; padding:15px; border:none; border-radius:8px; font-size:18px; font-weight:bold; cursor:pointer; transition:0.3s;">🇮🇳 हिंदी (Hindi)</button>
+      <button onclick="selectLanguage('other')" style="background:#f0f0f0; color:#333; padding:15px; border:none; border-radius:8px; font-size:16px; cursor:pointer; border:1px solid #ccc; transition:0.3s;">🌐 Other Languages / अन्य भाषाएं</button>
+    </div>
+  </div>
+</div>
 
 <!-- SIDEBAR MENU -->
 <div id="mySidebar" class="sidebar">
@@ -199,8 +210,10 @@
 
 <script>
 // --- GROQ CONFIG ---
+// ⚠️ IMPORTANT: If these keys are dead, you MUST generate new free keys at https://console.groq.com/keys
 const GROQ_API_KEYS = ["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", "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", "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", "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"];
-const GROQ_MODEL = "openai/gpt-oss-120b";
+const GROQ_MODEL = "llama-3.3-70b-versatile"; // ✅ REAL WORKING MODEL FOR TEXT
+const GROQ_VISION_MODEL = "llama-3.2-90b-vision-preview"; // ✅ REAL WORKING MODEL FOR CAMERA
 let currentKeyIndex = 0;
 let lastContext = null;
 
@@ -298,26 +311,33 @@ async function fetchGroqExtras() {
         headers: { 'Authorization': `Bearer ${currentKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: "user", content: systemPrompt }], temperature: 0.5, max_tokens: 500 })
       });
+      
       if (response.ok) {
         currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
         const data = await response.json();
         let rawJSON = data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim();
         let parsed = JSON.parse(rawJSON);
         
-        // Save to Local Storage!
         let customMeds = JSON.parse(localStorage.getItem('custom_ai_meds') || "[]");
         parsed.extras.forEach(e => { if(!customMeds.includes(e)) customMeds.push(e); });
         localStorage.setItem('custom_ai_meds', JSON.stringify(customMeds));
 
-        // Inject into UI
         document.getElementById('ai-extras-panel').innerHTML = parsed.extras.map(e => `<li style="background:#f8f9fa; padding:10px; margin-bottom:5px; border-radius:5px; border-left:3px solid #00b4d8;">💊 ${e}</li>`).join('');
         return;
-      } else if (response.status === 429) { currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length; attempts++; } else { throw new Error("API Error"); }
-    } catch (e) { if (e.message.includes("Failed to fetch")) break; attempts++; }
+      } else {
+        // DEBUG: Show exactly why it failed
+        const errText = await response.text();
+        alert("Groq API Error: " + response.status + "\n" + errText);
+        currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
+        attempts++;
+      }
+    } catch (e) {
+      alert("Network/Code Error: " + e.message);
+      attempts++;
+    }
   }
-  document.getElementById('ai-extras-panel').innerHTML = `<li style="color:#d90429; font-size:13px;">AI Limit Reached. Using Base Database.</li>`;
+  document.getElementById('ai-extras-panel').innerHTML = `<li style="color:#d90429; font-size:13px;">AI Limit Reached or Keys Invalid. Using Base Database.</li>`;
 }
-
 // --- RENDER MASSIVE REPORT ---
 function buildMassiveReport() {
   const c = lastContext;
@@ -594,7 +614,58 @@ function addQuickSymptom(keywords) {
   document.getElementById('ai-vision-status').innerHTML = "✅ Added: <strong>" + keywords + "</strong>. Now click 'Analyze & Generate Report'!";
 }
 
-window.onload = function() { if (typeof MEDICINE_DATA !== 'undefined') renderMedicineList(); };
+// --- LANGUAGE POPUP LOGIC ---
+function checkLanguagePreference() {
+    const savedLang = localStorage.getItem('user_lang_pref');
+    if (!savedLang) {
+        // First time user: Show the popup
+        document.getElementById('lang-popup').style.display = 'flex';
+    } else if (savedLang === 'hi') {
+        // Returning Hindi user: Auto-translate silently
+        waitForTranslateAndApply('hi');
+    }
+}
+
+function selectLanguage(lang) {
+    // Save choice forever so popup never shows again
+    localStorage.setItem('user_lang_pref', lang);
+    document.getElementById('lang-popup').style.display = 'none';
+    
+    if (lang === 'hi') {
+        waitForTranslateAndApply('hi');
+    } else {
+        // User chose "Other": Scroll to top and highlight the language dropdown
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const strip = document.querySelector('.translate-strip');
+        if(strip) {
+            strip.style.background = '#ffe082'; // Flash yellow to draw attention
+            strip.style.transition = 'background 1s';
+            setTimeout(() => strip.style.background = '#e0e0e0', 4000);
+        }
+    }
+}
+
+function waitForTranslateAndApply(langCode) {
+    // Google Translate loads asynchronously, so we wait for the dropdown to appear
+    const interval = setInterval(() => {
+        const select = document.querySelector('.goog-te-combo');
+        if (select) {
+            clearInterval(interval);
+            if (select.value !== langCode) {
+                select.value = langCode;
+                select.dispatchEvent(new Event('change'));
+            }
+        }
+    }, 500);
+    // Stop checking after 10 seconds to prevent infinite loops
+    setTimeout(() => clearInterval(interval), 10000);
+}
+
+// Trigger the check when the page finishes loading
+window.addEventListener('load', function() {
+    if (typeof MEDICINE_DATA !== 'undefined') renderMedicineList();
+    checkLanguagePreference(); 
+});
 </script>
 <script type="text/javascript">
   function googleTranslateElementInit() {
