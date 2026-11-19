@@ -867,7 +867,7 @@ const MEDICINE_DATA = [
     "rx_required": true,
     "price_inr": "150-500",
     "price_unit": "per scan",
-    "dosage_adult": a specific view (e.g., AP/PA).",
+    //
     "dosage_child": "Ensure the child is covered with a lead apron.",
     "max_daily": "Only when prescribed",
     "natural_aid": "None",
