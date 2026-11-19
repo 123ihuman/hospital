@@ -122,7 +122,18 @@
   <input type="date" id="appt-date"><input type="text" id="appt-doc" placeholder="Doctor Name / Clinic">
   <button onclick="saveAppt()" style="margin-bottom: 15px;">Save Appointment</button>
   <div id="appt-list" style="font-size: 14px; margin-bottom: 15px;"></div>
-  <button class="close-modal" onclick="closeTool('appointments')">Close</button>
+    <button class="close-modal" onclick="closeTool('appointments')">Close</button>
+</div>
+
+<!-- LIVE CAMERA MODAL -->
+<div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:3000; justify-content:center; align-items:center; flex-direction:column;">
+  <video id="cameraVideo" autoplay playsinline style="width:90%; max-width:400px; border-radius:12px; border:3px solid #00b4d8;"></video>
+  <canvas id="cameraCanvas" style="display:none;"></canvas>
+  <div style="display:flex; gap:15px; margin-top:20px;">
+    <button onclick="capturePhoto()" style="background:#2a9d8f; color:white; padding:12px 25px; border:none; border-radius:50px; font-size:18px; cursor:pointer;">📸 Capture</button>
+    <button onclick="closeCameraModal()" style="background:#d90429; color:white; padding:12px 25px; border:none; border-radius:50px; font-size:18px; cursor:pointer;">✖ Close</button>
+  </div>
+  <p style="color:white; margin-top:15px; font-size:13px;">Point the camera at the wound / rash and tap Capture.</p>
 </div>
 
 <div class="translate-strip">
@@ -155,8 +166,8 @@
       <textarea id="pSymptoms" placeholder="Example: Fever, severe headache, weakness, and a cut on my leg" style="flex: 1;"></textarea>
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <button onclick="startVoiceInput()" style="background: #ffb703; color: #333; padding: 10px; width: 50px; height: 50px; border-radius: 50%; font-size: 20px;">🎤</button>
-        <label for="cameraInput" style="background: #00b4d8; color: white; padding: 10px; width: 50px; height: 50px; border-radius: 50%; text-align: center; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; margin: 0;">📷</label>
-        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleCameraImage(event)">
+                <button onclick="openCameraModal()" style="background: #00b4d8; color: white; padding: 10px; width: 50px; height: 50px; border-radius: 50%; font-size: 20px;">📷</button>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleFileUpload(event)">
       </div>
     </div>
     <div id="ai-vision-status" style="font-size: 13px; color: var(--primary); margin-top: 5px; display: none;">🤖 AI is analyzing your photo...</div>
@@ -474,16 +485,15 @@ function renderMedicineList() {
 function copyReport() { navigator.clipboard.writeText(document.getElementById('reportContent').innerText).then(() => alert("✅ Copied!")); }
 
 // --- VOICE & CAMERA AI LOGIC ---
-const GROQ_VISION_MODEL = "llama-3.2-90b-vision-preview"; 
+const GROQ_VISION_MODEL = "llama-3.2-90b-vision-preview";
+let cameraStream = null;
 
 function startVoiceInput() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) { alert("Voice input not supported in this browser. Please use Chrome."); return; }
-  
   const recognition = new SpeechRecognition();
-  recognition.lang = 'en-IN'; // Supports Indian English and Hinglish perfectly
+  recognition.lang = 'en-IN';
   recognition.interimResults = false;
-  
   recognition.onstart = () => { document.getElementById('pSymptoms').placeholder = "🎤 Listening... Speak now!"; };
   recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript;
@@ -494,49 +504,74 @@ function startVoiceInput() {
   recognition.start();
 }
 
-async function handleCameraImage(event) {
+async function openCameraModal() {
+  document.getElementById('cameraModal').style.display = 'flex';
+  const video = document.getElementById('cameraVideo');
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    video.srcObject = cameraStream;
+    video.play();
+  } catch (err) {
+    document.getElementById('cameraModal').style.display = 'none';
+    document.getElementById('cameraInput').click(); // fallback to upload
+    alert("Camera not available on this device. Please upload a photo instead.");
+  }
+}
+
+function closeCameraModal() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  document.getElementById('cameraVideo').srcObject = null;
+  document.getElementById('cameraModal').style.display = 'none';
+}
+
+function capturePhoto() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('cameraCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+  closeCameraModal();
+  analyzeImage(dataUrl);
+}
+
+function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
+  const reader = new FileReader();
+  reader.onload = (e) => analyzeImage(e.target.result);
+  reader.readAsDataURL(file);
+}
+
+async function analyzeImage(base64Image) {
   const statusDiv = document.getElementById('ai-vision-status');
   statusDiv.style.display = 'block';
   statusDiv.innerText = "🤖 AI is analyzing your photo... Please wait.";
-
-  const reader = new FileReader();
-  reader.onload = async function(e) {
-    const base64Image = e.target.result;
-    const apiKey = GROQ_API_KEYS[0]; 
-    
-    try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: GROQ_VISION_MODEL,
-          messages: [{
-            role: "user",
-            content: [
-              { type: "text", text: "Identify visible medical symptoms in this image (e.g., rash, wound, swelling, redness, fungal patch). Reply ONLY with a comma-separated list of simple English keywords. Do not add any other text or warnings." },
-              { type: "image_url", image_url: { url: base64Image } }
-            ]
-          }],
-          max_tokens: 100
-        })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const aiKeywords = data.choices[0].message.content.trim();
-        document.getElementById('pSymptoms').value += (document.getElementById('pSymptoms').value ? " " : "") + aiKeywords;
-        statusDiv.innerText = "✅ Photo analyzed! Added keywords: " + aiKeywords;
-      } else {
-        statusDiv.innerText = "⚠️ AI Vision failed. Please type symptoms manually.";
-      }
-    } catch (err) {
-      statusDiv.innerText = "⚠️ Network error. Please type symptoms manually.";
+  const apiKey = GROQ_API_KEYS[0];
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: GROQ_VISION_MODEL,
+        messages: [{ role: "user", content: [
+          { type: "text", text: "Identify visible medical symptoms in this image (e.g., rash, wound, swelling, redness, fungal patch, bruise). Reply ONLY with a comma-separated list of simple English keywords. Do not add any other text or warnings." },
+          { type: "image_url", image_url: { url: base64Image } }
+        ]}],
+        max_tokens: 100
+      })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const aiKeywords = data.choices[0].message.content.trim();
+      document.getElementById('pSymptoms').value += (document.getElementById('pSymptoms').value ? " " : "") + aiKeywords;
+      statusDiv.innerText = "✅ Photo analyzed! Added keywords: " + aiKeywords;
+    } else {
+      statusDiv.innerText = "⚠️ AI Vision failed. Please type symptoms manually.";
     }
-  };
-  reader.readAsDataURL(file);
+  } catch (err) {
+    statusDiv.innerText = "⚠️ Network error. Please type symptoms manually.";
+  }
 }
 
 window.onload = function() { if (typeof MEDICINE_DATA !== 'undefined') renderMedicineList(); };
@@ -544,12 +579,26 @@ window.onload = function() { if (typeof MEDICINE_DATA !== 'undefined') renderMed
 <script type="text/javascript">
   function googleTranslateElementInit() {
     new google.translate.TranslateElement({
-            pageLanguage: 'hi',
-      includedLanguages: 'en,hi,bn,ta,te,mr,gu,kn,ml,pa,ur,fr,es,ar,zh-CN,ja,ko,de,ru',
+      pageLanguage: 'en', // Base code is English, so we tell Google to translate FROM English
+      includedLanguages: 'en,hi,bho,bn,ta,te,mr,gu,kn,ml,pa,ur,fr,es,ar,zh-CN,ja,ko,de,ru', // Added 'bho' for Bhojpuri
       layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
       autoDisplay: false
     }, 'google_translate_element');
   }
+  
+  // Force the app to auto-translate to Hindi on first load for Indian users
+  window.addEventListener('load', function() {
+    if (!localStorage.getItem('lang_selected')) {
+      setTimeout(function() {
+        var select = document.querySelector('.goog-te-combo');
+        if (select) {
+          select.value = 'hi';
+          select.dispatchEvent(new Event('change'));
+          localStorage.setItem('lang_selected', 'true');
+        }
+      }, 1000);
+    }
+  });
 </script>
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
