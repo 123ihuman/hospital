@@ -241,7 +241,6 @@ const MEDICINE_DATA = [
     "price_inr": "30-60",
     "price_unit": "per strip",
     "dosage_adult": "1 tablet 2-3 times a day",
-    "",
     "max_daily": "120mg/day",
     "natural_aid": "Hot water bag on stomach",
     "warning": "Used for stomach cramps and spasms.",
