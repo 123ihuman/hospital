@@ -505,7 +505,6 @@ function renderMedicineList() {
 function copyReport() { navigator.clipboard.writeText(document.getElementById('reportContent').innerText).then(() => alert("✅ Copied!")); }
 
 // --- VOICE & CAMERA AI LOGIC ---
-const GROQ_VISION_MODEL = "llama-3.2-90b-vision-preview";
 let cameraStream = null;
 
 function startVoiceInput() {
