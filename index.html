@@ -210,10 +210,14 @@
 
 <script>
 // --- GROQ CONFIG ---
-// ⚠️ IMPORTANT: If these keys are dead, you MUST generate new free keys at https://console.groq.com/keys
-const GROQ_API_KEYS = ["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", "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", "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", "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"];
-const GROQ_MODEL = "llama-3.3-70b-versatile"; // ✅ REAL WORKING MODEL FOR TEXT
-const GROQ_VISION_MODEL = "llama-3.2-90b-vision-preview"; // ✅ REAL WORKING MODEL FOR CAMERA
+// ⚠️ Get your FREE new keys from: https://console.groq.com/keys
+const GROQ_API_KEYS = [
+  "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",
+  "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",
+  "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"
+];
+const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GROQ_VISION_MODEL = "llama-3.2-90b-vision-preview";
 let currentKeyIndex = 0;
 let lastContext = null;
 
@@ -390,13 +394,33 @@ function buildMassiveReport() {
       </div>
       
       <div class="report-body">
-        <!-- GREETING TEXT -->
-        <div style="background: #e7f5ff; border-left: 4px solid var(--primary); padding: 20px; margin-bottom: 20px; border-radius: 6px; font-size: 15px; color: #0b3d91;">
-          <strong>${t.greet}, ${c.name}!</strong><br>
-          ${c.detectedLang === 'hi' 
-            ? `Hum aapki symptoms (${c.matchedSymptoms.join(", ")}) dekh rahe hain. Aap bilkul ghabraiye mat jald app ekdum sahi ho jayenge. Humne aapke liye  full detailed treatment plan banaya hai. Neeche diye gaye medicines aur diet ko strictly follow karein aur app jaldi se theek ho jaynge .` 
-            : `We have reviewed your symptoms (${c.matchedSymptoms.join(", ")}). Please do not panic, soon you will be fit again. We have generated a highly detailed clinical treatment plan for you. Follow the medicines and supportive care strictly this will help to recover again and be healthy.`}
-        </div>
+                       <!-- DOCTOR'S SUMMARY (Human-like, disease-specific) -->
+        ${(() => {
+          const primarySymptom = c.matchedSymptoms[0] || "general illness";
+          
+          // Doctor's summary per disease
+          const doctorNotes = {
+            "fever": `Dear ${c.name}, you have fever. Take Paracetamol 500mg every 6-8 hours — this is the most important medicine. Drink plenty of warm water, ORS, and coconut water. Eat light khichdi and soups. Avoid cold drinks and outside food. If fever does not reduce in 2 days, please visit a doctor for a blood test.`,
+            "cough": `Dear ${c.name}, for your cough, take the syrup after meals — never on empty stomach. Drink warm water with honey and tulsi 3 times a day. Do steam inhalation twice daily. Avoid cold water, ice cream, and fried snacks. If cough lasts more than 5 days or you feel chest pain, see a doctor.`,
+            "cold": `Dear ${c.name}, your cold will improve in 3-5 days. Take the antihistamine tablet at night only (it causes sleepiness). Drink warm fluids, do steam inhalation morning and evening. Eat warm soups and avoid cold items. Rest well — your body is fighting the infection.`,
+            "headache": `Dear ${c.name}, take one painkiller tablet after food with a full glass of water. Rest in a dark, quiet room. Apply a cold cloth on your forehead. Avoid screens, loud noise, and stress. If headache continues for more than 2 days or is very severe, please consult a doctor.`,
+            "pain": `Dear ${c.name}, take the painkiller strictly after food — never on empty stomach. Apply the gel on the painful area 2-3 times a day. Rest the affected body part. Use a hot water bag for muscle pain. Avoid heavy lifting and exercise until pain reduces.`,
+            "injury": `Dear ${c.name}, first clean the wound with clean water, then apply Betadine cream and cover with a clean bandage. Change the dressing daily. Keep the area dry. If the wound is deep, bleeding doesn't stop, or you see pus, go to a doctor immediately — you may need a tetanus injection.`,
+            "weakness": `Dear ${c.name}, your weakness needs nutrition, not just medicine. Take the multivitamin syrup daily after breakfast. Eat bananas, eggs, dal-rice, and drink milk. Sleep 7-8 hours. Walk 15 minutes daily in fresh air. If weakness continues for more than 2 weeks, get a blood test for hemoglobin and vitamin D.`,
+            "stomach ache": `Dear ${c.name}, take the antacid tablet 30 minutes before meals. Eat small, light meals — avoid spicy, oily, and junk food. Drink warm water. If pain is severe or you have vomiting, take the anti-vomiting tablet and visit a doctor.`,
+            "allergy": `Dear ${c.name}, take the allergy tablet at night. Avoid dust, smoke, and cold air. Wear a mask outside. Wash your face and hands after coming home. If you have breathing difficulty, use the inhaler and go to a doctor immediately.`,
+            "diarrhea": `Dear ${c.name}, the most important thing is ORS — drink it after every loose motion. Take the anti-vomiting tablet if needed. Eat khichdi, banana, and curd rice. Avoid milk, spicy food, and outside food. If diarrhea continues more than 2 days, see a doctor.`,
+            "general illness": `Dear ${c.name}, we have prepared a complete care plan for you. Please follow the medicines and diet carefully. Rest well, drink warm water, and eat light home-cooked food. If symptoms do not improve in 2-3 days, please consult a doctor.`
+          };
+          
+          const note = doctorNotes[primarySymptom] || doctorNotes["general illness"];
+          
+          return `<div style="background: linear-gradient(135deg, #e7f5ff 0%, #fff9db 100%); border-left: 5px solid #0b3d91; padding: 20px; margin-bottom: 25px; border-radius: 8px; font-size: 15px; color: #1a1a1a; line-height: 1.7;">
+            <h3 style="color: #0b3d91; margin: 0 0 10px 0; font-size: 18px;">👨‍⚕️ Doctor's Advice for ${c.name}</h3>
+            <p style="margin: 0;">${note}</p>
+            <p style="margin: 10px 0 0 0; font-size: 13px; color: #555;"><strong>📋 Your main symptoms:</strong> ${c.matchedSymptoms.join(", ")} | <strong>Duration:</strong> ${c.duration} days</p>
+          </div>`;
+        })()}
 
         <!-- 2. MASSIVE MEDICINES (TABLETS) -->
         <h3 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 5px;">💊 ${t.meds} (Tablets & Syrups)</h3>
@@ -428,19 +452,23 @@ function buildMassiveReport() {
         <!-- 7. SUPPORTIVE CARE (7-10 Pages) -->
         <h3 style="color: var(--success);">💚 ${t.care}</h3>
         ${c.matchedSymptoms.map(sym => {
-                    let advice = { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", how: "Take medicines with normal room temperature water after food." };
+                      // Disease-specific supportive care
+          const careDatabase = {
+            "fever": { eat: "Warm soups, khichdi, boiled vegetables, ORS, coconut water, and plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food, and outside food.", herbs: "Tulsi-ginger tea, warm water with honey, and light dal water.", how: "Take fever medicine every 6-8 hours with water after food. Rest completely." },
+            "cough": { eat: "Warm soups, khichdi, boiled vegetables, and plenty of warm fluids.", avoid: "Cold drinks, ice cream, fried food, and chilled items from fridge.", herbs: "Tulsi tea, ginger-honey water, and steam inhalation twice daily.", how: "Take cough syrup after meals. Do not drink cold water." },
+            "cold": { eat: "Warm soups, khichdi, boiled vegetables, and plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water, and steam inhalation.", how: "Take antihistamine at night only. Rest well." },
+            "headache": { eat: "Light meals, fruits, and plenty of water.", avoid: "Caffeine excess, junk food, and heavy spicy meals.", herbs: "Peppermint tea, cold cloth on forehead, and rest in dark room.", how: "Take painkiller after food with full glass of water." },
+            "pain": { eat: "Light protein-rich food, warm water, and vegetables.", avoid: "Heavy physical work, oily food.", herbs: "Turmeric milk (haldi doodh) at night, hot water bag on pain area.", how: "Take painkiller strictly after food. Apply gel 2-3 times daily." },
+            "injury": { eat: "Protein-rich foods (eggs, dal, paneer), warm water, and fruits.", avoid: "Heavy physical exertion, touching wound with dirty hands.", herbs: "Turmeric milk (anti-inflammatory), aloe vera gel on wound edges.", how: "Clean wound, apply antiseptic cream, cover with bandage. Change daily." },
+            "weakness": { eat: "Small frequent meals — dal-rice, bananas, boiled eggs, yogurt, and nuts.", avoid: "Junk food, heavy oily meals, skipping breakfast, and late nights.", herbs: "Amla juice, soaked almonds, warm milk with turmeric, and ashwagandha.", how: "Take multivitamin syrup right after breakfast. Sleep 7-8 hours." },
+            "no hunger": { eat: "Small frequent meals — fruits, yogurt, light khichdi, and soups.", avoid: "Junk food, heavy meals, and forcing large portions.", herbs: "Ginger tea before meals, ajwain water, and light walk after eating.", how: "Take appetite tonic 15 mins before meals." },
+            "stomach ache": { eat: "Light khichdi, curd rice, banana, and warm water.", avoid: "Spicy, oily, junk food, and cold drinks.", herbs: "Ajwain water, ginger tea, and fennel (saunf) after meals.", how: "Take antacid 30 mins before meals. Eat small portions." },
+            "allergy": { eat: "Warm home-cooked food, turmeric milk, and plenty of water.", avoid: "Dust, smoke, cold air, outside food, and known allergens.", herbs: "Tulsi tea, steam inhalation, and honey-ginger water.", how: "Take allergy tablet at night. Wear mask outside." },
+            "diarrhea": { eat: "ORS, khichdi, banana, curd rice, and boiled potatoes.", avoid: "Milk, spicy food, oily food, and outside food.", herbs: "Cumin (jeera) water, pomegranate juice, and light salted buttermilk.", how: "Drink ORS after every loose motion. Take medicines after food." },
+            "vomiting": { eat: "Light fluids — ORS, coconut water, and ginger tea.", avoid: "Heavy meals, oily food, and strong smells.", herbs: "Ginger tea, lemon water with pinch of salt, and mint leaves.", how: "Take anti-vomiting tablet 30 mins before food. Sip fluids slowly." }
+          };
           
-          if(sym === "injury") {
-            advice = { eat: "Protein-rich foods, warm water.", avoid: "Heavy physical exertion.", herbs: "Turmeric milk (anti-inflammatory).", how: "Take painkillers after meals." };
-          }
-          if(sym === "weakness" || sym === "no hunger" || sym === "loss of appetite") {
-            advice = { 
-              eat: "Small, frequent meals. Dal-rice, bananas, boiled eggs, and yogurt.", 
-              avoid: "Junk food, heavy oily meals, and skipping breakfast.", 
-              herbs: "Amla juice, soaked almonds, and warm milk with a pinch of turmeric.", 
-              how: "Take multivitamins right after a meal to prevent stomach upset." 
-            };
-          }
+          const advice = careDatabase[sym] || careDatabase["fever"];
           return `
           <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #1b5e20;">
             <h4 style="margin-bottom: 8px;">${sym.toUpperCase()}</h4>
@@ -453,15 +481,18 @@ function buildMassiveReport() {
           </div>`;
         }).join('')}
 
-        <!-- 8. HERBS, TONICS, SUPPLEMENTS -->
-        <h3 style="color: #856404; margin-top: 25px;">🛒 ${t.supp}</h3>
+               <!-- 8. DISEASE-SPECIFIC SUPPLEMENTS -->
+        <h3 style="color: #856404; margin-top: 25px;">🛒 ${t.supp} (Recommended for your condition)</h3>
         <div style="background: #fff3cd; border-left: 4px solid #ffb703; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #856404;">
           <ul style="margin-left: 20px; line-height: 1.8;">
-            <li><strong>Tonics:</strong> Livogen (Iron), Becosules (B-Complex), or Zincovit syrup.</li>
-            <li><strong>Supplements:</strong> Vitamin C (500mg), Vitamin D3 (60k IU weekly), Calcium.</li>
-            <li><strong>Juices:</strong> Mosambi, Coconut Water, Pomegranate (Anar).</li>
-            <li><strong>Herbs:</strong> Ashwagandha (for strength), Tulsi, Mulethi (for throat), Ajwain (for stomach).</li>
-            <li><strong>Protein:</strong> Ensure / Protinex (for weakness and healing).</li>
+            ${c.matchedSymptoms.includes("fever") ? `<li><strong>For Fever:</strong> Vitamin C (500mg) daily, ORS for hydration, and warm turmeric milk at night.</li>` : ''}
+            ${c.matchedSymptoms.includes("cough") || c.matchedSymptoms.includes("cold") ? `<li><strong>For Cough/Cold:</strong> Tulsi-Ginger tea 2x daily, honey with black pepper, and steam inhalation.</li>` : ''}
+            ${c.matchedSymptoms.includes("weakness") || c.matchedSymptoms.includes("no hunger") ? `<li><strong>For Weakness:</strong> Zincovit or Livogen syrup daily, Ensure/Protinex protein drink, banana + milk, soaked almonds, and ashwagandha.</li>` : ''}
+            ${c.matchedSymptoms.includes("injury") ? `<li><strong>For Injury Healing:</strong> Vitamin C (helps wound heal), Protein (Ensure/eggs/dal), and Calcium for bone recovery.</li>` : ''}
+            ${c.matchedSymptoms.includes("pain") ? `<li><strong>For Pain:</strong> Turmeric milk (haldi doodh) at night, magnesium-rich foods (nuts, bananas), and hot water bag therapy.</li>` : ''}
+            ${c.matchedSymptoms.includes("stomach ache") || c.matchedSymptoms.includes("diarrhea") ? `<li><strong>For Stomach Issues:</strong> Probiotics (curd/yogurt), ORS, ajwain water, and light khichdi diet.</li>` : ''}
+            ${c.matchedSymptoms.includes("allergy") ? `<li><strong>For Allergy:</strong> Vitamin C (natural antihistamine), warm turmeric milk, and avoid known triggers.</li>` : ''}
+            <li><strong>General:</strong> Drink 8-10 glasses of warm water daily. Sleep 7-8 hours. Eat fresh home-cooked food.</li>
           </ul>
         </div>
 
