@@ -389,9 +389,19 @@ function buildMassiveReport() {
         <!-- 7. SUPPORTIVE CARE (7-10 Pages) -->
         <h3 style="color: var(--success);">💚 ${t.care}</h3>
         ${c.matchedSymptoms.map(sym => {
-          let advice = { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", how: "Take medicines with normal room temperature water after food." };
-          if(sym === "injury") advice = { eat: "Protein-rich foods, warm water.", avoid: "Heavy physical exertion.", herbs: "Turmeric milk (anti-inflammatory).", how: "Take painkillers after meals." };
+                    let advice = { eat: "Warm soups, khichdi, boiled vegetables, plenty of fluids.", avoid: "Cold drinks, ice cream, heavy fried food.", herbs: "Tulsi tea, ginger-honey water.", how: "Take medicines with normal room temperature water after food." };
           
+          if(sym === "injury") {
+            advice = { eat: "Protein-rich foods, warm water.", avoid: "Heavy physical exertion.", herbs: "Turmeric milk (anti-inflammatory).", how: "Take painkillers after meals." };
+          }
+          if(sym === "weakness" || sym === "no hunger" || sym === "loss of appetite") {
+            advice = { 
+              eat: "Small, frequent meals. Dal-rice, bananas, boiled eggs, and yogurt.", 
+              avoid: "Junk food, heavy oily meals, and skipping breakfast.", 
+              herbs: "Amla juice, soaked almonds, and warm milk with a pinch of turmeric.", 
+              how: "Take multivitamins right after a meal to prevent stomach upset." 
+            };
+          }
           return `
           <div style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px; margin: 15px 0; border-radius: 6px; font-size: 14px; color: #1b5e20;">
             <h4 style="margin-bottom: 8px;">${sym.toUpperCase()}</h4>
