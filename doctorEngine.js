@@ -145,6 +145,91 @@ const CONDITION_PROTOCOLS = [
     ],
     lifestyle: "Wear loose cotton clothes. Keep the area dry. Do not share towels. Wash clothes in hot water.",
     warning: "Do not use steroid creams (like Betnovate) on fungal infections. It will make it worse."
+  },
+    // --- ADD THESE TO THE END OF CONDITION_PROTOCOLS ARRAY ---
+  {
+    id: "migraine",
+    name: "Migraine & Severe One-Sided Headache",
+    keywords: ["migraine", "severe headache", "one sided headache", "throbbing pain", "light sensitivity", "nausea with headache"],
+    prescription: [
+      { medId: "sumatriptan_50", role: "Primary: Stops migraine attack. Take at first sign of pain." },
+      { medId: "domperidone_10", role: "Anti-nausea: Prevents vomiting and helps painkiller absorb faster." },
+      { medId: "flunarizine_10", role: "Preventer: Take at night to reduce frequency of future attacks." },
+      { medId: "pantoprazole_40", role: "Gastric Shield: Protects stomach from strong painkillers." },
+      { medId: "magnesium_supplement", role: "Support: Reduces nerve excitability and prevents future migraines." }
+    ],
+    lifestyle: "Rest in a dark, quiet room immediately. Apply a cold cloth to the forehead. Avoid strong smells, bright screens, and aged cheese. Sleep 8 hours regularly.",
+    warning: "If headache is sudden and 'worst of your life', or accompanied by vision loss or weakness on one side, go to the Emergency Room immediately."
+  },
+  {
+    id: "uti_infection",
+    name: "Urinary Tract Infection (UTI) & Burning Urination",
+    keywords: ["burning urination", "frequent urination", "uti", "urine infection", "pain while peeing", "cloudy urine"],
+    prescription: [
+      { medId: "nitrofurantoin_100", role: "Primary Antibiotic: Kills UTI bacteria. Complete 5-day course." },
+      { medId: "sodium_bicarbonate_syrup", role: "Alkalizer: Reduces burning sensation. Mix in water and drink." },
+      { medId: "flavoxate_100", role: "Antispasmodic: Relieves bladder spasms and urgency." },
+      { medId: "probiotic_capsule", role: "Gut/Urinary Health: Restores good bacteria after antibiotics." },
+      { medId: "cranberry_supplement", role: "Support: Prevents bacteria from sticking to bladder walls." }
+    ],
+    lifestyle: "Drink 3-4 liters of water daily to flush out bacteria. Urinate immediately after intercourse. Wipe front to back. Avoid holding urine for long periods.",
+    warning: "If you develop high fever, back/flank pain, or blood in urine, the infection may have reached the kidneys. Visit a doctor immediately."
+  },
+  {
+    id: "dengue_warning",
+    name: "Suspected Dengue or Viral Fever with Body Aches",
+    keywords: ["dengue", "high fever", "severe body pain", "eye pain", "bone pain", "rash", "low platelets"],
+    prescription: [
+      { medId: "paracetamol_500", role: "Primary: ONLY safe fever reducer. Max 3g/day." },
+      { medId: "ors_powder", role: "Hydration: CRITICAL to maintain blood volume and platelets." },
+      { medId: "papaya_leaf_extract", role: "Ayurvedic Support: Traditionally used to support platelet count." },
+      { medId: "vitamin_c_tablet", role: "Immunity: Supports blood vessel strength and recovery." },
+      { medId: "paracetamol_syrup", role: "Alternative: For children or those who cannot swallow tablets." }
+    ],
+    lifestyle: "COMPLETE bed rest. Drink ORS, coconut water, and fresh juices continuously. Eat soft, easily digestible food. Use a mosquito net.",
+    warning: "🚨 DANGER: NEVER take Ibuprofen, Aspirin, or Combiflam for Dengue (causes bleeding). If you see bleeding gums, black stools, or extreme weakness, go to the hospital IMMEDIATELY for a CBC and Dengue NS1 test."
+  },
+  {
+    id: "menstrual_cramps",
+    name: "Severe Menstrual Cramps (Dysmenorrhea)",
+    keywords: ["period cramps", "menstrual pain", "lower stomach pain periods", "dysmenorrhea", "period pain"],
+    prescription: [
+      { medId: "mefenamic_acid_500", role: "Primary Painkiller: Specifically targets menstrual prostaglandins." },
+      { medId: "drotin_40", role: "Antispasmodic: Relaxes uterine muscles to stop cramping." },
+      { medId: "pantoprazole_40", role: "Gastric Shield: Take empty stomach to prevent acidity from painkillers." },
+      { medId: "iron_folic_acid", role: "Support: Replenishes iron lost during heavy bleeding." },
+      { medId: "hot_water_bag", role: "Topical Therapy: Apply to lower abdomen for 20 mins to relax muscles." }
+    ],
+    lifestyle: "Apply a hot water bag to your lower stomach. Drink warm ginger or fennel (saunf) tea. Do light stretching or yoga. Avoid cold foods and caffeine.",
+    warning: "If pain is so severe that you vomit or faint, or if bleeding soaks more than one pad per hour, consult a gynecologist to rule out PCOS or endometriosis."
+  },
+  {
+    id: "hypertension",
+    name: "High Blood Pressure (Hypertension) Management",
+    keywords: ["high bp", "hypertension", "blood pressure", "dizziness", "headache with high bp"],
+    prescription: [
+      { medId: "telmisartan_40", role: "Primary: Relaxes blood vessels. Take at the same time daily." },
+      { medId: "amlodipine_5", role: "Secondary: Calcium channel blocker for added BP control." },
+      { medId: "aspirin_75", role: "Preventer: Low-dose blood thinner to prevent heart attacks (if prescribed)." },
+      { medId: "atorvastatin_10", role: "Cholesterol: Protects heart arteries from plaque buildup." },
+      { medId: "potassium_supplement", role: "Support: Helps balance sodium and lower BP naturally." }
+    ],
+    lifestyle: "Strictly reduce salt intake (no extra salt on food). Walk briskly for 30 mins daily. Avoid stress, smoking, and alcohol. Eat potassium-rich foods like bananas and spinach.",
+    warning: "If BP exceeds 180/120 mmHg, or you experience chest pain, severe headache, or blurred vision, this is a Hypertensive Crisis. Go to the Emergency Room immediately."
+  },
+  {
+    id: "type2_diabetes",
+    name: "Type 2 Diabetes Management & High Sugar",
+    keywords: ["diabetes", "high sugar", "frequent urination", "excessive thirst", "diabetic"],
+    prescription: [
+      { medId: "metformin_500", role: "Primary: Reduces liver glucose production. Take after dinner." },
+      { medId: "glimepiride_1", role: "Secondary: Stimulates pancreas to release more insulin. Take before breakfast." },
+      { medId: "methylcobalamin_1500", role: "Nerve Support: Prevents diabetic neuropathy (tingling in feet)." },
+      { medId: "alpha_lipoic_acid", role: "Antioxidant: Protects nerves and improves insulin sensitivity." },
+      { medId: "diabetic_multivitamin", role: "Support: Chromium and Zinc to help regulate blood sugar." }
+    ],
+    lifestyle: "Follow a strict low-carb, high-fiber diet (avoid white rice, maida, sugar). Walk 30-45 minutes after every meal. Check feet daily for cuts. Drink plenty of water.",
+    warning: "If you feel shaky, sweaty, and confused, your sugar may be too LOW. Eat 2-3 glucose tablets or a glass of fruit juice immediately. If sugar is consistently >250, see your doctor."
   }
 ];
 
