@@ -490,6 +490,50 @@ function handleFileUpload(event) {
   reader.readAsDataURL(file);
 }
 
+// ==========================================
+// ESSENTIAL UI HELPERS (Required for App to Load)
+// ==========================================
+
+function renderMedicineList() {
+  const query = document.getElementById('searchMed').value.toLowerCase();
+  const formFilter = document.getElementById('filterForm').value;
+  const container = document.getElementById('medListContainer');
+  
+  let filtered = MEDICINE_DATA.filter(med => {
+    const matchesSearch = med.generic_name.toLowerCase().includes(query) || med.brand_names.join(' ').toLowerCase().includes(query);
+    const matchesForm = formFilter === 'all' || med.form === formFilter;
+    return matchesSearch && matchesForm;
+  });
+  
+  container.innerHTML = filtered.length === 0 ? '<p style="text-align: center; padding: 20px; color: #666;">No medicines found.</p>' : filtered.map(med => {
+    let icon = { Tablet: '💊', Syrup: '🧴', Injection: '💉', Syringe: '🩹', Gel: '🧴', Drops: '💧', Cream: '🧴', Device: '🩺', Powder: '🥛', "Diagnostic Scan": '🩻' }[med.form] || '💊';
+    return `
+      <div class="info-card" style="margin-bottom: 10px; border-left: 4px solid var(--secondary); background: #f8f9fa; padding: 15px; border-radius: 6px;">
+        <h4 style="color:var(--primary); margin-bottom:5px;">${icon} ${med.generic_name} (${med.strength})</h4>
+        <p style="font-size: 13px; margin-bottom: 5px;"><strong>Brands:</strong> ${med.brand_names.join(', ')}</p>
+        <div class="dosage-line"><strong>Dose:</strong> ${med.dosage_adult}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function copyReport() { 
+  navigator.clipboard.writeText(document.getElementById('reportContent').innerText).then(() => alert("✅ Report copied to clipboard!")); 
+}
+
+// --- INITIALIZE APP ON LOAD ---
+window.addEventListener('load', function() {
+  // 1. Load the medicine database search list
+  if (typeof MEDICINE_DATA !== 'undefined') {
+    renderMedicineList();
+  }
+  
+  // 2. Trigger the Hindi language popup if it exists
+  if (typeof checkLanguagePreference === 'function') {
+    checkLanguagePreference();
+  }
+});
+
 async function analyzeImage(base64Image) {
   const statusDiv = document.getElementById('ai-vision-status');
   statusDiv.style.display = 'block';
