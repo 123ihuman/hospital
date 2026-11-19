@@ -688,7 +688,7 @@ const MEDICINE_DATA = [
     "price_inr": "60-90",
     "price_unit": "per bottle",
     "dosage_adult": "10ml 2-3 times a day before food",
-    " (weight based)",
+    //
     "max_daily": "As prescribed",
     "natural_aid": "Small frequent meals",
     "warning": "Causes drowsiness and weight gain.",
