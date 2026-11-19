@@ -253,7 +253,7 @@ function analyzeSymptoms() {
   MEDICINE_DATA.forEach(med => { med.symptoms.forEach(sym => { if (cleanInput.includes(sym)) matchedSymptoms.add(sym); }); });
   if (matchedSymptoms.size === 0) matchedSymptoms.add("general weakness"); 
 
-  lastContext = { name, age, gender, duration, originalInput, detectedLang, t, matchedSymptoms: Array.from(matchedSymptoms) };
+  lastContext = { name, age, gender, duration, originalInput, detectedLang, t, isChild: (age < 18), matchedSymptoms: Array.from(matchedSymptoms) };
 
   document.getElementById('reportContent').innerHTML = `<div style="text-align:center; padding:50px;"><h3 style="color:var(--primary);">🩺 Generating 10-Page Detailed Clinical Report...</h3></div>`;
   switchTab('report');
@@ -308,23 +308,25 @@ function buildMassiveReport() {
   // If symptom is "fever", we pull 5 tablets, 3 injections, 3 gels, 3 diagnostics related to it.
   let tbl = [], inj = [], tube = [], diag = [];
   
-  c.matchedSymptoms.forEach(sym => {
+    c.matchedSymptoms.forEach(sym => {
     MEDICINE_DATA.forEach(m => {
-      if (m.symptoms.includes(sym) || m.symptoms.includes("fever") || m.symptoms.includes("pain") || m.symptoms.includes("injury")) {
-        if (m.form === "Tablet" || m.form === "Syrup") { if (tbl.length < 5 && !tbl.includes(m)) tbl.push(m); }
-        if (m.form === "Injection") { if (inj.length < 3 && !inj.includes(m)) inj.push(m); }
-        if (m.form === "Gel" || m.form === "Cream" || m.form === "Powder") { if (tube.length < 3 && !tube.includes(m)) tube.push(m); }
-        if (m.form === "Diagnostic Scan") { if (diag.length < 4 && !diag.includes(m)) diag.push(m); }
+      // ONLY match the actual symptom the user typed, no hardcoded fallbacks
+      if (m.symptoms.includes(sym)) {
+        if ((m.form === "Tablet" || m.form === "Syrup") && tbl.length < 5 && !tbl.includes(m)) tbl.push(m);
+        if (m.form === "Injection" && inj.length < 3 && !inj.includes(m)) inj.push(m);
+        if ((m.form === "Gel" || m.form === "Cream" || m.form === "Powder") && tube.length < 3 && !tube.includes(m)) tube.push(m);
+        if (m.form === "Diagnostic Scan" && diag.length < 4 && !diag.includes(m)) diag.push(m);
       }
     });
   });
 
-  // Ensure minimum quantities (fallback if symptoms are rare)
-  if (tbl.length < 3) tbl.push(MEDICINE_DATA.find(m => m.form === "Tablet"));
-  if (inj.length < 2) inj.push(MEDICINE_DATA.find(m => m.form === "Injection"));
-  if (tube.length < 2) tube.push(MEDICINE_DATA.find(m => m.form === "Gel"));
-  if (diag.length < 3) diag = [MEDICINE_DATA.find(m => m.form === "Diagnostic Scan")];
-
+  // Safe fallback ONLY if absolutely no medicines were found at all
+  if (tbl.length === 0 && inj.length === 0 && tube.length === 0) {
+    const fallbackMeds = MEDICINE_DATA.filter(m => m.symptoms.includes("general weakness") || m.symptoms.includes("fever"));
+    fallbackMeds.forEach(m => {
+      if ((m.form === "Tablet" || m.form === "Syrup") && tbl.length < 3) tbl.push(m);
+    });
+  }
   // Helper to render a single med
   const renderM = (m, icon, color) => `
     <div style="margin-bottom: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid ${color};">
@@ -369,14 +371,12 @@ function buildMassiveReport() {
         <h3 style="color: #0077b6; margin-top: 25px; border-bottom: 2px solid #eee; padding-bottom: 5px;">🧴 ${t.tubes} (Gels & Creams)</h3>
         ${tube.map(m => m ? renderM(m, "🧴", "#0077b6") : "").join('')}
 
-        <!-- 5. DIAGNOSTICS -->
-        <h3 style="color: #6c757d; margin-top: 25px; border-bottom: 2px solid #eee; padding-bottom: 5px;">🩻 ${t.diag} (X-Ray, MRI, CT Scan)</h3>
+                <!-- 5. DIAGNOSTICS (Only show if relevant scans were matched) -->
+        ${diag.length > 0 ? `
+        <h3 style="color: #6c757d; margin-top: 25px; border-bottom: 2px solid #eee; padding-bottom: 5px;">🩻 ${t.diag}</h3>
         <ul style="margin-left: 20px; line-height: 1.8; font-size: 14px;">
-          <li><strong>X-Ray:</strong> To check for fractures, lung infections, or bone issues.</li>
-          <li><strong>MRI / CT Scan:</strong> If pain is severe, to check soft tissues, brain, or spine.</li>
-          <li><strong>Blood Test (CBC):</strong> To check for infection levels (WBC) and hemoglobin.</li>
           ${diag.map(m => m ? `<li><strong>${m.generic_name}:</strong> ${m.warning}</li>` : "").join('')}
-        </ul>
+        </ul>` : ''}
 
         <!-- 6. GROQ EXTRA MEDS PANEL -->
         <h3 style="color: #00b4d8; margin-top: 25px; border-bottom: 2px solid #eee; padding-bottom: 5px;">🌐 ${t.ai} (Rare / Extra Meds)</h3>
@@ -456,5 +456,16 @@ function renderMedicineList() {
 function copyReport() { navigator.clipboard.writeText(document.getElementById('reportContent').innerText).then(() => alert("✅ Copied!")); }
 window.onload = function() { if (typeof MEDICINE_DATA !== 'undefined') renderMedicineList(); };
 </script>
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'en',
+      includedLanguages: 'en,hi,bn,ta,te,mr,gu,kn,ml,pa,ur,fr,es,ar,zh-CN,ja,ko,de,ru',
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
