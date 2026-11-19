@@ -257,7 +257,7 @@ const MEDICINE_DATA = [
     "price_inr": "20-40",
     "price_unit": "per strip",
     "dosage_adult": "1 tablet as needed for vomiting",
-    "",
+    //
     "max_daily": "8mg/day",
     "natural_aid": "Ginger tea, lemon water",
     "warning": "Do not take on an empty stomach.",
@@ -274,7 +274,7 @@ const MEDICINE_DATA = [
     "price_inr": "30-50",
     "price_unit": "per strip",
     "dosage_adult": "1 tablet 15-30 mins before meals",
-    "",
+    //
     "max_daily": "3 times daily",
     "natural_aid": "Small frequent meals",
     ".",
@@ -310,7 +310,7 @@ const MEDICINE_DATA = [
     "price_inr": "100-180",
     "price_unit": "per pack",
     "dosage_adult": "1-2 teaspoons with warm water/milk at night",
-    "",
+    //
     "max_daily": "2 times daily",
     "natural_aid": "Plenty of water",
     "warning": "Drink plenty of water after taking to avoid bloating.",
@@ -416,7 +416,7 @@ const MEDICINE_DATA = [
     "price_inr": "30-60",
     "price_unit": "per tablet",
     "dosage_adult": "1 tablet as directed",
-    "",
+    //
     "max_daily": "Single dose usually",
     "natural_aid": "Keep area dry",
     "warning": "Prescription only. For fungal infections.",
@@ -433,7 +433,7 @@ const MEDICINE_DATA = [
     "price_inr": "40-70",
     "price_unit": "per tube",
     "dosage_adult": "Apply to affected area twice daily",
-    "",
+    //
     "max_daily": "2 times",
     "natural_aid": "Keep area dry and clean",
     "warning": "For fungal infections only (ringworm, itching).",
@@ -454,7 +454,7 @@ const MEDICINE_DATA = [
     "price_inr": "20-50",
     "price_unit": "per strip",
     "dosage_adult": "1 tablet twice daily after meals",
-    "",
+    //
     "max_daily": "2000mg/day",
     "natural_aid": "Low sugar diet, exercise",
     "warning": "Take after food to avoid stomach upset.",
@@ -489,7 +489,7 @@ const MEDICINE_DATA = [
     "price_inr": "150-300",
     "price_unit": "per vial",
     "dosage_adult": "As prescribed based on blood sugar",
-    "",
+    //
     "max_daily": "As prescribed",
     "natural_aid": "Diet control, exercise",
     "warning": "Keep refrigerated. Risk of hypoglycemia.",
@@ -506,7 +506,7 @@ const MEDICINE_DATA = [
     "price_inr": "15-40",
     "price_unit": "per strip",
     "dosage_adult": "1 tablet once daily",
-    "",
+    //
     "max_daily": "Once daily",
     "natural_aid": "Low salt diet",
     "warning": "Do not stop suddenly. Monitor BP.",
@@ -580,7 +580,7 @@ const MEDICINE_DATA = [
     "price_inr": "100-150",
     "price_unit": "per bottle",
     "dosage_adult": "1-2 drops in each eye 3-4 times daily",
-    "",
+    //
     "max_daily": "As needed",
     "natural_aid": "Blink often, avoid screens",
     "warning": "Do not touch dropper tip to eye.",
@@ -618,7 +618,7 @@ const MEDICINE_DATA = [
     "price_inr": "50-120",
     "price_unit": "per strip",
     "dosage_adult": "1 tablet daily after food",
-    "",
+    //
     "max_daily": "Once daily",
     "natural_aid": "Eat green leafy vegetables, dates",
     "warning": "May cause black stools. Avoid taking with milk/tea.",
@@ -635,7 +635,7 @@ const MEDICINE_DATA = [
     "price_inr": "80-150",
     "price_unit": "per strip",
     "dosage_adult": "1 tablet daily after food",
-    "",
+    //
     "max_daily": "Once daily",
     "natural_aid": "Sunlight, milk",
     "warning": "Do not take on an empty stomach.",
@@ -743,7 +743,7 @@ const MEDICINE_DATA = [
     "price_inr": "80-120",
     "price_unit": "per tube",
     "dosage_adult": "Apply thin layer to affected area 3 times daily",
-    "",
+    //
     "max_daily": "3 times",
     "natural_aid": "Keep area clean",
     "warning": "For bacterial skin infections only.",
