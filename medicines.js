@@ -277,7 +277,7 @@ const MEDICINE_DATA = [
     //
     "max_daily": "3 times daily",
     "natural_aid": "Small frequent meals",
-    ".",
+    //
     "symptoms": ["vomiting", "nausea", "bloating", "stomach ache"]
   },
   {
